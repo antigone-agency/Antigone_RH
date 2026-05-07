@@ -1,0 +1,46 @@
+# Lock files
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+Frontend/package-lock.json
+
+# Node modules
+node_modules/
+
+# Vite
+.vite/
+dist/
+
+# Maven
+Backend/target/
+*.jar
+
+# IDE
+.idea/
+*.iml
+.vscode/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Env
+.env
+.env.local
+.env.*.local
+
+# Logs
+*.log
+Frontend/package-lock.json
+Backend/mvnw.cmd
+AgentDesktop/node_modules/
+Backend/target/
+README_AI_IDEAS.md
+
+# Secrets and local credentials
+Backend/service-account.json
+Backend/client-viewer-service-account.json
+Backend/fix_json.py
+Backend/tokens/
