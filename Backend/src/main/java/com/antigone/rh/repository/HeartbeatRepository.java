@@ -12,31 +12,33 @@ import java.util.List;
 @Repository
 public interface HeartbeatRepository extends JpaRepository<Heartbeat, Long> {
 
-    List<Heartbeat> findByEmployeIdAndTimestampBetweenOrderByTimestampAsc(
-            Long employeId, LocalDateTime start, LocalDateTime end);
+        List<Heartbeat> findByEmployeId(Long employeId);
 
-    @Query("SELECT h FROM Heartbeat h WHERE h.employe.id = :employeId " +
-            "AND h.timestamp >= :start AND h.timestamp <= :end AND h.actif = false")
-    List<Heartbeat> findInactiveHeartbeats(
-            @Param("employeId") Long employeId,
-            @Param("start") LocalDateTime start,
-            @Param("end") LocalDateTime end);
+        List<Heartbeat> findByEmployeIdAndTimestampBetweenOrderByTimestampAsc(
+                        Long employeId, LocalDateTime start, LocalDateTime end);
 
-    @Query("SELECT COUNT(h) FROM Heartbeat h WHERE h.employe.id = :employeId " +
-            "AND h.timestamp >= :start AND h.timestamp <= :end AND h.actif = false")
-    long countInactiveMinutes(
-            @Param("employeId") Long employeId,
-            @Param("start") LocalDateTime start,
-            @Param("end") LocalDateTime end);
+        @Query("SELECT h FROM Heartbeat h WHERE h.employe.id = :employeId " +
+                        "AND h.timestamp >= :start AND h.timestamp <= :end AND h.actif = false")
+        List<Heartbeat> findInactiveHeartbeats(
+                        @Param("employeId") Long employeId,
+                        @Param("start") LocalDateTime start,
+                        @Param("end") LocalDateTime end);
 
-    @Query("SELECT COUNT(h) FROM Heartbeat h WHERE h.employe.id = :employeId " +
-            "AND h.timestamp >= :start AND h.timestamp <= :end AND h.actif = true")
-    long countActiveMinutes(
-            @Param("employeId") Long employeId,
-            @Param("start") LocalDateTime start,
-            @Param("end") LocalDateTime end);
+        @Query("SELECT COUNT(h) FROM Heartbeat h WHERE h.employe.id = :employeId " +
+                        "AND h.timestamp >= :start AND h.timestamp <= :end AND h.actif = false")
+        long countInactiveMinutes(
+                        @Param("employeId") Long employeId,
+                        @Param("start") LocalDateTime start,
+                        @Param("end") LocalDateTime end);
 
-    @Query("SELECT h FROM Heartbeat h WHERE h.employe.id = :employeId " +
-            "ORDER BY h.timestamp DESC LIMIT 1")
-    Heartbeat findLastByEmployeId(@Param("employeId") Long employeId);
+        @Query("SELECT COUNT(h) FROM Heartbeat h WHERE h.employe.id = :employeId " +
+                        "AND h.timestamp >= :start AND h.timestamp <= :end AND h.actif = true")
+        long countActiveMinutes(
+                        @Param("employeId") Long employeId,
+                        @Param("start") LocalDateTime start,
+                        @Param("end") LocalDateTime end);
+
+        @Query("SELECT h FROM Heartbeat h WHERE h.employe.id = :employeId " +
+                        "ORDER BY h.timestamp DESC LIMIT 1")
+        Heartbeat findLastByEmployeId(@Param("employeId") Long employeId);
 }

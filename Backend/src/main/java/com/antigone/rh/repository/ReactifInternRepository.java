@@ -11,6 +11,10 @@ import java.util.List;
 @Repository
 public interface ReactifInternRepository extends JpaRepository<ReactifIntern, Long> {
 
+    List<ReactifIntern> findByEmployeId(Long employeId);
+
+    List<ReactifIntern> findByManagerId(Long managerId);
+
     List<ReactifIntern> findByTypeOrderByDateReactifDesc(TypeReactif type);
 
     List<ReactifIntern> findByTache_IdOrderByDateReactifDesc(Long tacheId);

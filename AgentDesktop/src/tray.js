@@ -20,7 +20,9 @@ function create(callbacks) {
   
   tray.on('click', () => {
     if (config.isLoggedIn()) {
-      // Afficher le menu
+      // Recalculer le menu juste avant l'ouverture pour refléter
+      // l'etat de pointage le plus recent.
+      updateMenu();
       tray.popUpContextMenu();
     } else {
       // Ouvrir la fenêtre de login

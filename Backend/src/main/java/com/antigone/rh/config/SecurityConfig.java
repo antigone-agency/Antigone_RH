@@ -41,6 +41,7 @@ public class SecurityConfig {
                                 "/api/agent/download",
                                 "/api/media-plans/google-drive/callback")
                         .permitAll()
+                        .requestMatchers(HttpMethod.PUT, "/api/comptes/*/password").authenticated()
                         .requestMatchers("/api/admin/**", "/api/comptes/**", "/api/roles/**", "/api/referentiels/**")
                         .hasRole("ADMIN")
                         .requestMatchers("/api/agent/**")

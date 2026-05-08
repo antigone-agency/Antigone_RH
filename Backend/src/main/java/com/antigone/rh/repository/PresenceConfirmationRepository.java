@@ -10,6 +10,8 @@ import java.util.List;
 @Repository
 public interface PresenceConfirmationRepository extends JpaRepository<PresenceConfirmation, Long> {
 
+    List<PresenceConfirmation> findByEmployeId(Long employeId);
+
     List<PresenceConfirmation> findByEmployeIdAndTimestampBetween(
             Long employeId, LocalDateTime start, LocalDateTime end);
 }

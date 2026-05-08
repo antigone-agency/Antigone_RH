@@ -1,8 +1,9 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import {
   HiOutlineSearch,
   HiOutlineCalendar,
   HiOutlineUser,
+  HiOutlineFilter,
   HiOutlineCheckCircle,
   HiOutlineClock,
   HiOutlineXCircle,
@@ -12,6 +13,9 @@ import {
   HiOutlineViewBoards,
   HiOutlineBan,
   HiOutlineEyeOff,
+  HiOutlineChevronDown,
+  HiOutlineChevronLeft,
+  HiOutlineChevronRight,
 } from 'react-icons/hi';
 import { agentHistoriqueService } from '../api/agentHistoriqueService';
 import { employeService } from '../api/employeService';
@@ -35,6 +39,19 @@ const getStatutBadge = (statut: string) => {
     case 'TELETRAVAIL': return <Badge variant="success">Télétravail</Badge>;
     case 'JOUR_FERIE': return <Badge variant="neutral">Jour férié</Badge>;
     default: return <Badge variant="neutral">{statut}</Badge>;
+  }
+};
+
+const getStatutLabel = (statut: string) => {
+  switch (statut) {
+    case 'PRESENT': return 'Présent';
+    case 'RETARD': return 'Retard';
+    case 'ABSENT': return 'Absent';
+    case 'EN_CONGE': return 'En congé';
+    case 'EN_AUTORISATION': return 'Autorisation';
+    case 'TELETRAVAIL': return 'Télétravail';
+    case 'JOUR_FERIE': return 'Jour férié';
+    default: return statut;
   }
 };
 
@@ -68,22 +85,146 @@ const getMonthOptions = () => {
   return options;
 };
 
+const formatLocalDate = (date: Date): string => {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+};
+
+type FilterOption = {
+  value: string;
+  label: string;
+};
+
+const FilterDropdown: React.FC<{
+  label: string;
+  icon: React.ReactNode;
+  value: string;
+  options: FilterOption[];
+  placeholder: string;
+  onChange: (value: string) => void;
+  className?: string;
+}> = ({ label, icon, value, options, placeholder, onChange, className = '' }) => {
+  const [open, setOpen] = useState(false);
+  const wrapperRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    const handleOutsideClick = (event: MouseEvent) => {
+      if (!wrapperRef.current?.contains(event.target as Node)) {
+        setOpen(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleOutsideClick);
+    return () => document.removeEventListener('mousedown', handleOutsideClick);
+  }, []);
+
+  const selected = options.find((option) => option.value === value);
+
+  return (
+    <div ref={wrapperRef} className={className}>
+      <label className="mb-1.5 flex items-center gap-1.5 text-sm font-medium text-gray-700 dark:text-gray-300">
+        {icon}
+        {label}
+      </label>
+      <div className="relative">
+        <button
+          type="button"
+          onClick={() => setOpen((prev) => !prev)}
+          className="flex h-11 w-full items-center justify-between rounded-xl border border-gray-300 bg-white px-4 text-left text-theme-sm text-gray-700 shadow-sm transition focus:border-brand-300 focus:outline-none focus:ring focus:ring-brand-500/10 dark:border-gray-600 dark:bg-gray-900 dark:text-gray-300"
+        >
+          <span className="truncate">{selected?.label || placeholder}</span>
+          <HiOutlineChevronDown
+            size={18}
+            className={`shrink-0 text-gray-400 transition-transform ${open ? 'rotate-180' : ''}`}
+          />
+        </button>
+
+        {open && (
+          <div className="absolute left-0 right-0 top-full z-50 mt-2 max-h-72 overflow-auto rounded-xl border border-gray-200 bg-white py-2 shadow-2xl ring-1 ring-black/5 dark:border-gray-700 dark:bg-gray-900">
+            <button
+              type="button"
+              onClick={() => {
+                onChange('');
+                setOpen(false);
+              }}
+              className={`flex w-full items-center px-4 py-2.5 text-left text-theme-sm transition ${value === '' ? 'bg-brand-50 text-brand-700 dark:bg-brand-500/15 dark:text-brand-300' : 'text-gray-700 hover:bg-gray-50 dark:text-gray-300 dark:hover:bg-gray-800'}`}
+            >
+              {placeholder}
+            </button>
+
+            {options.map((option) => (
+              <button
+                key={option.value}
+                type="button"
+                onClick={() => {
+                  onChange(option.value);
+                  setOpen(false);
+                }}
+                className={`flex w-full items-center px-4 py-2.5 text-left text-theme-sm transition ${value === option.value ? 'bg-brand-500 text-white' : 'text-gray-700 hover:bg-gray-50 dark:text-gray-300 dark:hover:bg-gray-800'}`}
+              >
+                <span className="truncate">{option.label}</span>
+              </button>
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
+
 const HistoriqueAgentPage: React.FC = () => {
   const [employes, setEmployes] = useState<Employe[]>([]);
   const [selectedEmployeId, setSelectedEmployeId] = useState<number | null>(null);
   const [historique, setHistorique] = useState<HistoriqueEmploye | null>(null);
   const [loading, setLoading] = useState(false);
+  const [filterStatut, setFilterStatut] = useState('');
+  const [page, setPage] = useState(1);
+  const pageSize = 10;
+
+  const uniqueEmployes = useMemo(() => {
+    const byIdentity = new Map<string, Employe>();
+    for (const employe of employes) {
+      const key = `${employe.nom}|${employe.prenom}|${employe.poste || 'N/A'}`
+        .trim()
+        .toLowerCase();
+      if (!byIdentity.has(key)) {
+        byIdentity.set(key, employe);
+      }
+    }
+    return Array.from(byIdentity.values()).sort((a, b) => {
+      const left = `${a.nom} ${a.prenom}`.toLowerCase();
+      const right = `${b.nom} ${b.prenom}`.toLowerCase();
+      return left.localeCompare(right, 'fr');
+    });
+  }, [employes]);
 
   const currentMonth = () => {
     const now = new Date();
     return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
   };
   const [selectedMonth, setSelectedMonth] = useState<string>(currentMonth());
+  const monthOptions = useMemo(() => getMonthOptions(), []);
+  const employeeOptions = useMemo(
+    () => uniqueEmployes.map((emp) => ({
+      value: String(emp.id),
+      label: `${emp.nom} ${emp.prenom} - ${emp.poste || 'N/A'}`,
+    })),
+    [uniqueEmployes]
+  );
+  const statusOptions = useMemo(() => {
+    const preferredOrder = ['ABSENT', 'RETARD', 'PRESENT', 'EN_CONGE', 'EN_AUTORISATION', 'TELETRAVAIL', 'JOUR_FERIE'];
+    const presentStatuses = new Set((historique?.jours || []).map((jour) => jour.statut));
+    return preferredOrder
+      .filter((statut) => presentStatuses.has(statut))
+      .map((statut) => ({ value: statut, label: getStatutLabel(statut) }));
+  }, [historique]);
 
   const monthToRange = (ym: string) => {
     const [year, month] = ym.split('-').map(Number);
-    const debut = new Date(year, month - 1, 1).toISOString().split('T')[0];
-    const fin = new Date(year, month, 0).toISOString().split('T')[0];
+    const debut = formatLocalDate(new Date(year, month - 1, 1));
+    const fin = formatLocalDate(new Date(year, month, 0));
     return { debut, fin };
   };
 
@@ -113,6 +254,10 @@ const HistoriqueAgentPage: React.FC = () => {
     if (selectedEmployeId) loadHistorique();
   }, [selectedEmployeId, debut, fin]);
 
+  useEffect(() => {
+    setPage(1);
+  }, [selectedEmployeId, selectedMonth, filterStatut]);
+
   const stats = historique ? {
     totalJours: historique.jours.length,
     presents: historique.jours.filter(j => j.statut === 'PRESENT').length,
@@ -125,6 +270,21 @@ const HistoriqueAgentPage: React.FC = () => {
     totalActifMin: historique.jours.reduce((s, j) => s + (j.tempsActifMinutes || 0), 0),
     totalInactifMin: historique.jours.reduce((s, j) => s + (j.tempsInactifMinutes || 0), 0),
   } : null;
+
+  const filteredJours = useMemo(() => {
+    const jours = historique?.jours || [];
+    if (!filterStatut) return jours;
+    return jours.filter((jour) => jour.statut === filterStatut);
+  }, [historique, filterStatut]);
+
+  const totalPages = Math.max(1, Math.ceil(filteredJours.length / pageSize));
+  const paginatedJours = filteredJours.slice((page - 1) * pageSize, page * pageSize);
+
+  useEffect(() => {
+    if (page > totalPages) {
+      setPage(totalPages);
+    }
+  }, [page, totalPages]);
 
   return (
     <div className="p-6 space-y-6">
@@ -157,37 +317,33 @@ const HistoriqueAgentPage: React.FC = () => {
       {/* Filtres */}
       <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-5">
         <div className="flex flex-wrap gap-4 items-end">
-          <div className="flex-1 min-w-[250px]">
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5 flex items-center gap-1.5">
-              <HiOutlineUser size={15} className="text-gray-400" />
-              Employé
-            </label>
-            <select
-              value={selectedEmployeId || ''}
-              onChange={(e) => setSelectedEmployeId(e.target.value ? Number(e.target.value) : null)}
-              className="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 text-theme-sm text-gray-700 focus:border-brand-300 focus:outline-none focus:ring focus:ring-brand-500/10 dark:border-gray-600 dark:bg-gray-900 dark:text-gray-300"
-            >
-              <option value="">-- Sélectionner un employé --</option>
-              {employes.map(emp => (
-                <option key={emp.id} value={emp.id}>{emp.nom} {emp.prenom} - {emp.poste || 'N/A'}</option>
-              ))}
-            </select>
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5 flex items-center gap-1.5">
-              <HiOutlineCalendar size={15} className="text-gray-400" />
-              Mois
-            </label>
-            <select
-              value={selectedMonth}
-              onChange={(e) => setSelectedMonth(e.target.value)}
-              className="h-11 rounded-lg border border-gray-300 bg-transparent px-4 text-theme-sm text-gray-700 focus:border-brand-300 focus:outline-none focus:ring focus:ring-brand-500/10 dark:border-gray-600 dark:bg-gray-900 dark:text-gray-300"
-            >
-              {getMonthOptions().map(opt => (
-                <option key={opt.value} value={opt.value}>{opt.label}</option>
-              ))}
-            </select>
-          </div>
+          <FilterDropdown
+            label="Employé"
+            icon={<HiOutlineUser size={15} className="text-gray-400" />}
+            value={selectedEmployeId ? String(selectedEmployeId) : ''}
+            options={employeeOptions}
+            placeholder="-- Sélectionner un employé --"
+            onChange={(value) => setSelectedEmployeId(value ? Number(value) : null)}
+            className="min-w-[250px] flex-1"
+          />
+          <FilterDropdown
+            label="Mois"
+            icon={<HiOutlineCalendar size={15} className="text-gray-400" />}
+            value={selectedMonth}
+            options={monthOptions}
+            placeholder="-- Sélectionner un mois --"
+            onChange={setSelectedMonth}
+            className="w-full min-w-[220px] sm:w-[240px]"
+          />
+          <FilterDropdown
+            label="Statut"
+            icon={<HiOutlineFilter size={15} className="text-gray-400" />}
+            value={filterStatut}
+            options={statusOptions}
+            placeholder="Tous les statuts"
+            onChange={setFilterStatut}
+            className="w-full min-w-[220px] sm:w-[240px]"
+          />
         </div>
       </div>
 
@@ -231,6 +387,8 @@ const HistoriqueAgentPage: React.FC = () => {
             {stats && (
               <div className="hidden md:flex items-center gap-3 text-sm">
                 <span className="text-gray-500 dark:text-gray-400">{stats.totalJours} jours</span>
+                <span className="text-gray-300 dark:text-gray-600">•</span>
+                <span className="text-gray-500 dark:text-gray-400">{filteredJours.length} affiché{filteredJours.length > 1 ? 's' : ''}</span>
               </div>
             )}
           </div>
@@ -263,7 +421,7 @@ const HistoriqueAgentPage: React.FC = () => {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-100 dark:divide-gray-700/50">
-                    {historique.jours.map((jour, idx) => (
+                    {paginatedJours.map((jour, idx) => (
                       <tr key={idx} className="hover:bg-gray-50 dark:hover:bg-gray-700/30 transition-colors">
                         <td className="px-4 py-3.5 font-medium text-gray-800 dark:text-gray-200 whitespace-nowrap">{formatDate(jour.date)}</td>
                         <td className="px-4 py-3.5">{getStatutBadge(jour.statut)}</td>
@@ -288,6 +446,13 @@ const HistoriqueAgentPage: React.FC = () => {
                         </td>
                       </tr>
                     ))}
+                    {paginatedJours.length === 0 && (
+                      <tr>
+                        <td colSpan={9} className="px-4 py-8 text-center text-sm text-gray-500 dark:text-gray-400">
+                          Aucun jour ne correspond au statut sélectionné pour ce mois.
+                        </td>
+                      </tr>
+                    )}
                   </tbody>
                 </table>
               </div>
@@ -297,9 +462,47 @@ const HistoriqueAgentPage: React.FC = () => {
           {/* Timeline view */}
           {viewMode === 'timeline' && (
             <div className="space-y-3">
-              {historique.jours.map((jour, idx) => (
+              {paginatedJours.map((jour, idx) => (
                 <TimelineCard key={idx} jour={jour} />
               ))}
+              {paginatedJours.length === 0 && (
+                <div className="rounded-xl border border-gray-200 bg-white p-8 text-center text-sm text-gray-500 shadow-sm dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400">
+                  Aucun jour ne correspond au statut sélectionné pour ce mois.
+                </div>
+              )}
+            </div>
+          )}
+
+          {filteredJours.length > 0 && (
+            <div className="flex flex-col gap-3 rounded-xl border border-gray-200 bg-white px-4 py-3 shadow-sm dark:border-gray-700 dark:bg-gray-800 sm:flex-row sm:items-center sm:justify-between">
+              <p className="text-sm text-gray-500 dark:text-gray-400">
+                Affichage de <span className="font-medium text-gray-700 dark:text-gray-200">{(page - 1) * pageSize + 1}</span>
+                {' '}à <span className="font-medium text-gray-700 dark:text-gray-200">{Math.min(page * pageSize, filteredJours.length)}</span>
+                {' '}sur <span className="font-medium text-gray-700 dark:text-gray-200">{filteredJours.length}</span> jour{filteredJours.length > 1 ? 's' : ''}
+              </p>
+              <div className="flex items-center gap-2 self-end sm:self-auto">
+                <button
+                  type="button"
+                  onClick={() => setPage((current) => Math.max(1, current - 1))}
+                  disabled={page === 1}
+                  className="inline-flex items-center gap-2 rounded-lg border border-gray-300 px-3 py-2 text-sm font-medium text-gray-600 transition hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700"
+                >
+                  <HiOutlineChevronLeft size={16} />
+                  Précédent
+                </button>
+                <span className="min-w-[78px] text-center text-sm font-medium text-gray-700 dark:text-gray-200">
+                  Page {page} / {totalPages}
+                </span>
+                <button
+                  type="button"
+                  onClick={() => setPage((current) => Math.min(totalPages, current + 1))}
+                  disabled={page === totalPages}
+                  className="inline-flex items-center gap-2 rounded-lg border border-gray-300 px-3 py-2 text-sm font-medium text-gray-600 transition hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700"
+                >
+                  Suivant
+                  <HiOutlineChevronRight size={16} />
+                </button>
+              </div>
             </div>
           )}
         </>

@@ -11,12 +11,21 @@ import java.util.Optional;
 @Repository
 public interface CalendrierProjetRepository extends JpaRepository<CalendrierProjet, Long> {
     List<CalendrierProjet> findByDateSlotBetween(LocalDate start, LocalDate end);
+
     List<CalendrierProjet> findByManagerIdAndDateSlotBetween(Long managerId, LocalDate start, LocalDate end);
 
-    List<CalendrierProjet> findByDateSlotBetweenAndStatutIn(LocalDate start, LocalDate end, List<CalendrierProjet.SlotStatus> statuts);
-    List<CalendrierProjet> findByManagerIdAndDateSlotBetweenAndStatutIn(Long managerId, LocalDate start, LocalDate end, List<CalendrierProjet.SlotStatus> statuts);
+    List<CalendrierProjet> findByDateSlotBetweenAndStatutIn(LocalDate start, LocalDate end,
+            List<CalendrierProjet.SlotStatus> statuts);
 
-    boolean existsByManagerIdAndDateSlotAndStatutIn(Long managerId, LocalDate dateSlot, List<CalendrierProjet.SlotStatus> statuts);
+    List<CalendrierProjet> findByManagerIdAndDateSlotBetweenAndStatutIn(Long managerId, LocalDate start, LocalDate end,
+            List<CalendrierProjet.SlotStatus> statuts);
+
+    boolean existsByManagerIdAndDateSlotAndStatutIn(Long managerId, LocalDate dateSlot,
+            List<CalendrierProjet.SlotStatus> statuts);
 
     Optional<CalendrierProjet> findByMediaPlanLigneId(Long mediaPlanLigneId);
+
+    List<CalendrierProjet> findByManagerId(Long managerId);
+
+    List<CalendrierProjet> findBySocialManagerId(Long socialManagerId);
 }

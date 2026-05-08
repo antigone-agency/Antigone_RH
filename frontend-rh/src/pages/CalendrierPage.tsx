@@ -18,6 +18,7 @@ import { tacheObligatoireService, TacheObligatoireDTO } from '../api/tacheObliga
 import { CalendrierJour, HoraireTravail, TypeJour, OrigineJour, Employe } from '../types';
 import Button from '../components/ui/Button';
 import Modal from '../components/ui/Modal';
+import TimePicker from '../components/ui/TimePicker';
 import DataTable from '../components/ui/DataTable';
 import Badge from '../components/ui/Badge';
 
@@ -1122,40 +1123,32 @@ const CalendrierPage: React.FC = () => {
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="block text-theme-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Heure début *</label>
-              <input
-                type="time"
+              <TimePicker
                 value={horaireForm.heureDebut}
-                onChange={(e) => setHoraireForm({ ...horaireForm, heureDebut: e.target.value })}
-                className="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 text-theme-sm text-gray-700 focus:border-brand-300 focus:outline-none focus:ring focus:ring-brand-500/10 dark:border-gray-600 dark:text-gray-300"
+                onChange={(v) => setHoraireForm({ ...horaireForm, heureDebut: v })}
               />
             </div>
             <div>
               <label className="block text-theme-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Heure fin *</label>
-              <input
-                type="time"
+              <TimePicker
                 value={horaireForm.heureFin}
-                onChange={(e) => setHoraireForm({ ...horaireForm, heureFin: e.target.value })}
-                className="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 text-theme-sm text-gray-700 focus:border-brand-300 focus:outline-none focus:ring focus:ring-brand-500/10 dark:border-gray-600 dark:text-gray-300"
+                onChange={(v) => setHoraireForm({ ...horaireForm, heureFin: v })}
               />
             </div>
           </div>
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="block text-theme-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Début pause déjeuner</label>
-              <input
-                type="time"
+              <TimePicker
                 value={horaireForm.pauseDebutMidi}
-                onChange={(e) => setHoraireForm({ ...horaireForm, pauseDebutMidi: e.target.value })}
-                className="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 text-theme-sm text-gray-700 focus:border-brand-300 focus:outline-none focus:ring focus:ring-brand-500/10 dark:border-gray-600 dark:text-gray-300"
+                onChange={(v) => setHoraireForm({ ...horaireForm, pauseDebutMidi: v })}
               />
             </div>
             <div>
               <label className="block text-theme-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Fin pause déjeuner</label>
-              <input
-                type="time"
+              <TimePicker
                 value={horaireForm.pauseFinMidi}
-                onChange={(e) => setHoraireForm({ ...horaireForm, pauseFinMidi: e.target.value })}
-                className="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 text-theme-sm text-gray-700 focus:border-brand-300 focus:outline-none focus:ring focus:ring-brand-500/10 dark:border-gray-600 dark:text-gray-300"
+                onChange={(v) => setHoraireForm({ ...horaireForm, pauseFinMidi: v })}
               />
             </div>
           </div>

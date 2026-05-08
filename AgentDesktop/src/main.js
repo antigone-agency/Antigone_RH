@@ -53,6 +53,13 @@ app.whenReady().then(() => {
     popupManager = require('./popup-manager');
     trayManager = require('./tray');
     console.log('[Agent] Tous les modules chargés');
+
+    // Reconnexion automatique : si la session expire en arrière-plan, afficher le login
+    api.authEvents.on('session-expired', () => {
+      console.log('[Agent] Session expirée et reconnexion silencieuse impossible — affichage du login');
+      stopServices();
+      showLoginWindow();
+    });
   } catch (err) {
     console.error('[Agent] Erreur chargement modules:', err);
     dialog.showErrorBox('Agent Error', 'Erreur chargement modules: ' + err.message);
@@ -84,9 +91,13 @@ app.whenReady().then(() => {
     }).catch((err) => {
       console.log('[Agent] Config refresh échoué (utilisation du cache):', err.message);
     }).finally(() => {
-      startServices();
-      trayManager.updateMenu();
-      trayManager.setStatus('Connecté');
+      if (config.isLoggedIn()) {
+        startServices();
+        trayManager.updateMenu();
+        trayManager.setStatus('Connecté');
+      }
+      // Si la session a été effacée (reconnexion silencieuse échouée),
+      // l'événement 'session-expired' a déjà affiché la fenêtre de login
     });
   } else {
     showLoginWindow();

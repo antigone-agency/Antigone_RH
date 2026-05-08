@@ -31,7 +31,14 @@ import { NotificationProvider } from './context/NotificationContext';
 
 const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { isAuthenticated } = useAuth();
-  if (!isAuthenticated) return <Navigate to="/login" replace />;
+  if (!isAuthenticated) {
+    const projectsAppUrl = (import.meta.env.VITE_PROJECTS_APP_URL as string | undefined)?.trim();
+    if (projectsAppUrl) {
+      window.location.replace(`${projectsAppUrl}/login`);
+      return <div className="min-h-screen flex items-center justify-center bg-gray-900"><p className="text-gray-400 text-sm">Redirection vers la page de connexion...</p></div>;
+    }
+    return <Navigate to="/login" replace />;
+  }
   return <>{children}</>;
 };
 

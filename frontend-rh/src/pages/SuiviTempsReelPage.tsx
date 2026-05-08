@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { agentDashboardService } from '../api/agentDashboardService';
 import { DashboardEmployeStatus } from '../types';
 import Badge from '../components/ui/Badge';
@@ -16,6 +16,16 @@ const SuiviTempsReelPage: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStatut, setFilterStatut] = useState<string>('all');
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  const uniqueStatuses = useMemo(() => {
+    const byEmployeId = new Map<number, DashboardEmployeStatus>();
+    for (const status of statuses) {
+      if (!byEmployeId.has(status.employeId)) {
+        byEmployeId.set(status.employeId, status);
+      }
+    }
+    return Array.from(byEmployeId.values());
+  }, [statuses]);
 
   useEffect(() => {
     loadStatuses();
@@ -37,7 +47,7 @@ const SuiviTempsReelPage: React.FC = () => {
     }
   };
 
-  const filteredStatuses = statuses.filter((s) => {
+  const filteredStatuses = uniqueStatuses.filter((s) => {
     const matchSearch = `${s.nom} ${s.prenom} ${s.poste || ''} ${s.departement || ''}`
       .toLowerCase()
       .includes(searchTerm.toLowerCase());
@@ -60,11 +70,11 @@ const SuiviTempsReelPage: React.FC = () => {
   );
 
   const stats = {
-    presents: statuses.filter(s => s.statut === 'PRESENT').length,
-    retards: statuses.filter(s => s.statut === 'RETARD').length,
-    absents: statuses.filter(s => s.statut === 'ABSENT').length,
-    agentsActifs: statuses.filter(s => s.agentActif).length,
-    surReseau: statuses.filter(s => s.surReseauEntreprise).length,
+    presents: uniqueStatuses.filter(s => s.statut === 'PRESENT').length,
+    retards: uniqueStatuses.filter(s => s.statut === 'RETARD').length,
+    absents: uniqueStatuses.filter(s => s.statut === 'ABSENT').length,
+    agentsActifs: uniqueStatuses.filter(s => s.agentActif).length,
+    surReseau: uniqueStatuses.filter(s => s.surReseauEntreprise).length,
   };
 
   return (

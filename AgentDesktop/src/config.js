@@ -4,6 +4,8 @@ const Store = require('electron-store');
 
 const TOKEN_ENCRYPTED_KEY = 'tokenEncrypted';
 const TOKEN_FALLBACK_KEY = 'tokenFallback';
+const CREDS_ENCRYPTED_KEY = 'credsPasswordEncrypted';
+const CREDS_FALLBACK_KEY = 'credsPasswordFallback';
 
 const store = new Store({
   name: 'antigone-rh-agent-config',
@@ -102,6 +104,8 @@ function clearSession() {
   store.set('prenom', null);
   store.delete(TOKEN_ENCRYPTED_KEY);
   store.delete(TOKEN_FALLBACK_KEY);
+  // Les credentials (savedUsername, credsPassword*) sont conservés volontairement
+  // pour permettre la reconnexion automatique silencieuse après expiration du token
 }
 
 function getToken() {
@@ -133,4 +137,33 @@ function setToken(value) {
   store.set(TOKEN_FALLBACK_KEY, String(value));
 }
 
-module.exports = { get, set, getAll, clear, clearSession, isLoggedIn, isWorkingTime };
+function saveCredentials(username, password) {
+  if (!username || !password) return;
+  store.set('savedUsername', username);
+  if (safeStorage.isEncryptionAvailable()) {
+    const encrypted = safeStorage.encryptString(String(password)).toString('base64');
+    store.set(CREDS_ENCRYPTED_KEY, encrypted);
+    store.delete(CREDS_FALLBACK_KEY);
+  } else {
+    store.set(CREDS_FALLBACK_KEY, String(password));
+  }
+}
+
+function getCredentials() {
+  const username = store.get('savedUsername');
+  if (!username) return null;
+  const encrypted = store.get(CREDS_ENCRYPTED_KEY);
+  if (encrypted && safeStorage.isEncryptionAvailable()) {
+    try {
+      const password = safeStorage.decryptString(Buffer.from(encrypted, 'base64'));
+      return { username, password };
+    } catch {
+      store.delete(CREDS_ENCRYPTED_KEY);
+    }
+  }
+  const fallback = store.get(CREDS_FALLBACK_KEY);
+  if (fallback) return { username, password: fallback };
+  return null;
+}
+
+module.exports = { get, set, getAll, clear, clearSession, isLoggedIn, isWorkingTime, saveCredentials, getCredentials };

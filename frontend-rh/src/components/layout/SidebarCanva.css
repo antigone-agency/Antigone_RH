@@ -33,41 +33,56 @@
 }
 
 .sidebar-toggle-btn {
+  display: none;
+}
+
+/* Bouton toggle intégré au bord de la sidebar */
+.pc-rail-toggle-btn {
   position: fixed;
-  z-index: 300;
-  width: 28px;
-  height: 28px;
-  border-radius: 8px;
-  border: 1px solid rgba(229, 225, 239, 0.8);
-  background: rgba(255, 255, 255, 0.9);
-  backdrop-filter: blur(4px);
-  color: #6a6578;
+  left: calc(var(--sidebar-w) - 1px);
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 201;
+  width: 16px;
+  height: 44px;
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  border-left: none;
+  border-radius: 0 8px 8px 0;
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  box-shadow: 3px 0 12px rgba(var(--brand-rgb), 0.08);
+  color: #9b94ab;
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
   transition: var(--transition);
-  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+  padding: 0;
 }
 
-.sidebar-toggle-btn:hover {
-  border-color: var(--brand-light);
-  background: #f9f6fc;
+.pc-rail-toggle-btn:hover {
+  width: 20px;
   color: var(--brand-main);
-  box-shadow: 0 4px 12px rgba(var(--brand-rgb), 0.2);
-  transform: scale(1.05);
+  background: rgba(var(--brand-rgb), 0.08);
+  box-shadow: 3px 0 16px rgba(var(--brand-rgb), 0.18);
 }
 
-.dark .sidebar-toggle-btn {
-  background: rgba(29, 27, 40, 0.8);
-  border-color: #2f2b40;
-  color: #b4afc1;
+/* Quand la rail est cachée, le bouton reste visible à left:0 */
+.pc-rail-toggle-btn.rail-hidden {
+  left: 0;
+  border-left: 1px solid rgba(229, 225, 239, 0.8);
 }
 
-.dark .sidebar-toggle-btn:hover {
-  border-color: var(--brand-main);
-  background: #26223a;
+.dark .pc-rail-toggle-btn {
+  background: rgba(255, 255, 255, 0.06);
+  border-color: rgba(255, 255, 255, 0.08);
+  color: #6b6480;
+}
+
+.dark .pc-rail-toggle-btn:hover {
   color: var(--brand-light);
+  background: rgba(var(--brand-rgb), 0.15);
 }
 
 

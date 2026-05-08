@@ -1,7 +1,232 @@
 // ...existing code...
 
 import React, { useState, useEffect, useRef } from 'react';
-import { HiOutlinePlus, HiOutlineSearch, HiOutlinePencil, HiOutlineTrash, HiOutlinePhotograph, HiOutlineEye, HiOutlineDownload, HiOutlineFilter, HiOutlineChartBar, HiOutlineX, HiOutlineAcademicCap, HiOutlineDocumentText, HiOutlineUpload, HiOutlineExternalLink, HiOutlineCheck } from 'react-icons/hi';
+import { HiOutlinePlus, HiOutlineSearch, HiOutlinePencil, HiOutlineTrash, HiOutlinePhotograph, HiOutlineEye, HiOutlineDownload, HiOutlineFilter, HiOutlineChartBar, HiOutlineX, HiOutlineAcademicCap, HiOutlineDocumentText, HiOutlineUpload, HiOutlineExternalLink, HiOutlineCheck, HiOutlineChevronDown, HiOutlineChevronLeft, HiOutlineChevronRight, HiOutlineCalendar } from 'react-icons/hi';
+
+// ─── Custom styled select ───────────────────────────────────────────────────
+interface SelectOption { value: string; label: string; }
+interface FormSelectProps {
+  value: string;
+  onChange: (val: string) => void;
+  options: SelectOption[];
+  placeholder?: string;
+  error?: boolean;
+  className?: string;
+}
+const FormSelect: React.FC<FormSelectProps> = ({ value, onChange, options, placeholder = 'Sélectionner', error, className = '' }) => {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+  const selected = options.find(o => o.value === value);
+
+  useEffect(() => {
+    const handler = (e: MouseEvent) => { if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false); };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, []);
+
+  return (
+    <div ref={ref} className={`relative ${className}`}>
+      <button
+        type="button"
+        onClick={() => setOpen(o => !o)}
+        className={`h-11 w-full flex items-center justify-between gap-2 rounded-lg border px-4 text-theme-sm transition-all
+          ${error
+            ? 'border-error-500 focus:ring-error-500/10 text-gray-700 dark:text-gray-300'
+            : 'border-gray-300 dark:border-gray-600 focus:border-brand-300 focus:ring focus:ring-brand-500/10 text-gray-700 dark:text-gray-300'}
+          bg-white dark:bg-gray-800 hover:border-gray-400 dark:hover:border-gray-500`}
+      >
+        <span className={selected ? 'text-gray-700 dark:text-gray-200' : 'text-gray-400 dark:text-gray-500'}>
+          {selected ? selected.label : placeholder}
+        </span>
+        <HiOutlineChevronDown size={16} className={`text-gray-400 transition-transform flex-shrink-0 ${open ? 'rotate-180' : ''}`} />
+      </button>
+      {open && (
+        <div className="absolute z-50 mt-1 w-full rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 shadow-xl overflow-hidden">
+          <div className="max-h-52 overflow-y-auto py-1">
+            {placeholder && (
+              <button
+                type="button"
+                onClick={() => { onChange(''); setOpen(false); }}
+                className={`w-full text-left px-4 py-2.5 text-theme-sm transition-colors
+                  ${!value ? 'bg-brand-50 dark:bg-brand-500/10 text-brand-600 dark:text-brand-400 font-medium' : 'text-gray-400 dark:text-gray-500 hover:bg-gray-50 dark:hover:bg-gray-800'}`}
+              >
+                {placeholder}
+              </button>
+            )}
+            {options.map(opt => (
+              <button
+                key={opt.value}
+                type="button"
+                onClick={() => { onChange(opt.value); setOpen(false); }}
+                className={`w-full text-left px-4 py-2.5 text-theme-sm transition-colors
+                  ${value === opt.value
+                    ? 'bg-brand-50 dark:bg-brand-500/10 text-brand-600 dark:text-brand-400 font-medium'
+                    : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800'}`}
+              >
+                {opt.label}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+// ────────────────────────────────────────────────────────────────────────────
+
+// ─── Custom styled date picker ───────────────────────────────────────────────
+const WEEK_DAYS = ['lu', 'ma', 'me', 'je', 've', 'sa', 'di'];
+const MONTH_NAMES = ['janvier', 'février', 'mars', 'avril', 'mai', 'juin', 'juillet', 'août', 'septembre', 'octobre', 'novembre', 'décembre'];
+
+interface FormDatePickerProps {
+  value: string;
+  onChange: (val: string) => void;
+  max?: string;
+  min?: string;
+  readOnly?: boolean;
+  error?: boolean;
+  className?: string;
+}
+const FormDatePicker: React.FC<FormDatePickerProps> = ({ value, onChange, max, min, readOnly, error, className = '' }) => {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+  const today = new Date();
+  const todayYMD = [today.getFullYear(), String(today.getMonth() + 1).padStart(2, '0'), String(today.getDate()).padStart(2, '0')].join('-');
+  const init = value ? new Date(value + 'T00:00:00') : today;
+  const [viewYear, setViewYear] = useState(init.getFullYear());
+  const [viewMonth, setViewMonth] = useState(init.getMonth());
+
+  useEffect(() => {
+    if (value) {
+      const d = new Date(value + 'T00:00:00');
+      setViewYear(d.getFullYear());
+      setViewMonth(d.getMonth());
+    }
+  }, [value]);
+
+  useEffect(() => {
+    const h = (e: MouseEvent) => { if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false); };
+    document.addEventListener('mousedown', h);
+    return () => document.removeEventListener('mousedown', h);
+  }, []);
+
+  const toYMD = (d: Date) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+
+  const formatDisplay = (val: string) => {
+    if (!val) return '';
+    const [y, m, d] = val.split('-');
+    return `${d}/${m}/${y}`;
+  };
+
+  const getDays = () => {
+    let startDow = new Date(viewYear, viewMonth, 1).getDay();
+    startDow = startDow === 0 ? 6 : startDow - 1; // Mon = 0
+    const days: { date: Date; current: boolean }[] = [];
+    for (let i = startDow - 1; i >= 0; i--) days.push({ date: new Date(viewYear, viewMonth, -i), current: false });
+    const total = new Date(viewYear, viewMonth + 1, 0).getDate();
+    for (let i = 1; i <= total; i++) days.push({ date: new Date(viewYear, viewMonth, i), current: true });
+    let nx = 1;
+    while (days.length % 7 !== 0 || days.length < 35) days.push({ date: new Date(viewYear, viewMonth + 1, nx++), current: false });
+    return days;
+  };
+
+  const isDisabled = (d: Date) => {
+    const ymd = toYMD(d);
+    if (max && ymd > max) return true;
+    if (min && ymd < min) return true;
+    return false;
+  };
+
+  const prevMonth = () => { if (viewMonth === 0) { setViewMonth(11); setViewYear(y => y - 1); } else setViewMonth(m => m - 1); };
+  const nextMonth = () => { if (viewMonth === 11) { setViewMonth(0); setViewYear(y => y + 1); } else setViewMonth(m => m + 1); };
+
+  const days = getDays();
+
+  return (
+    <div ref={ref} className={`relative ${className}`}>
+      <button
+        type="button"
+        onClick={() => !readOnly && setOpen(o => !o)}
+        className={`h-11 w-full flex items-center gap-2 rounded-lg border px-4 text-theme-sm transition-all text-left
+          ${error ? 'border-error-500 focus:ring-error-500/10' : 'border-gray-300 dark:border-gray-600 focus:border-brand-300 focus:ring focus:ring-brand-500/10'}
+          ${readOnly ? 'bg-gray-50 dark:bg-gray-800/50 cursor-default' : 'bg-white dark:bg-gray-800 hover:border-gray-400 dark:hover:border-gray-500 cursor-pointer'}`}
+      >
+        <HiOutlineCalendar size={16} className="text-gray-400 flex-shrink-0" />
+        <span className={value ? 'text-gray-700 dark:text-gray-200' : 'text-gray-400 dark:text-gray-500'}>
+          {value ? formatDisplay(value) : 'jj/mm/aaaa'}
+        </span>
+      </button>
+
+      {open && !readOnly && (
+        <div className="absolute z-50 mt-1 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 shadow-2xl p-3 w-64">
+          {/* Navigation header */}
+          <div className="flex items-center justify-between mb-3">
+            <button type="button" onClick={prevMonth} className="p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-600 dark:text-gray-300 transition-colors">
+              <HiOutlineChevronLeft size={16} />
+            </button>
+            <span className="text-theme-sm font-semibold text-gray-800 dark:text-white">
+              {MONTH_NAMES[viewMonth]} {viewYear} ▾
+            </span>
+            <button type="button" onClick={nextMonth} className="p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-600 dark:text-gray-300 transition-colors">
+              <HiOutlineChevronRight size={16} />
+            </button>
+          </div>
+
+          {/* Day headers */}
+          <div className="grid grid-cols-7 mb-1">
+            {WEEK_DAYS.map(d => (
+              <div key={d} className="text-center text-theme-xs font-medium text-gray-400 dark:text-gray-500 py-1">{d}</div>
+            ))}
+          </div>
+
+          {/* Days grid */}
+          <div className="grid grid-cols-7 gap-y-0.5">
+            {days.map((item, idx) => {
+              const ymd = toYMD(item.date);
+              const sel = ymd === value;
+              const tod = ymd === todayYMD;
+              const dis = isDisabled(item.date);
+              return (
+                <button
+                  key={idx}
+                  type="button"
+                  onClick={() => { if (!dis) { onChange(ymd); setOpen(false); } }}
+                  disabled={dis}
+                  className={`h-8 w-full flex items-center justify-center text-theme-xs rounded-lg transition-colors
+                    ${sel
+                      ? 'bg-brand-500 text-white font-semibold'
+                      : tod
+                        ? 'ring-1 ring-brand-400 text-brand-600 dark:text-brand-400 font-semibold hover:bg-brand-50 dark:hover:bg-brand-500/10'
+                        : item.current
+                          ? 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800'
+                          : 'text-gray-300 dark:text-gray-600 hover:bg-gray-50 dark:hover:bg-gray-800'}
+                    ${dis ? 'opacity-30 cursor-not-allowed pointer-events-none' : ''}`}
+                >
+                  {item.date.getDate()}
+                </button>
+              );
+            })}
+          </div>
+
+          {/* Footer */}
+          <div className="flex justify-between mt-3 pt-2 border-t border-gray-100 dark:border-gray-700">
+            <button type="button" onClick={() => { onChange(''); setOpen(false); }} className="text-theme-xs text-brand-500 hover:text-brand-600 font-medium px-2 py-1 rounded hover:bg-brand-50 dark:hover:bg-brand-500/10 transition-colors">
+              Effacer
+            </button>
+            <button
+              type="button"
+              onClick={() => { if (!isDisabled(today)) { onChange(todayYMD); setOpen(false); } }}
+              className={`text-theme-xs font-medium px-2 py-1 rounded transition-colors ${isDisabled(today) ? 'text-gray-300 cursor-not-allowed' : 'text-brand-500 hover:text-brand-600 hover:bg-brand-50 dark:hover:bg-brand-500/10'}`}
+            >
+              Aujourd'hui
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+// ────────────────────────────────────────────────────────────────────────────
 import { employeService } from '../api/employeService';
 import { competenceService } from '../api/competenceService';
 import { documentEmployeService } from '../api/documentEmployeService';
@@ -686,39 +911,47 @@ const EmployesPage: React.FC = () => {
           <div className="p-4 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50 grid grid-cols-2 md:grid-cols-4 gap-3">
             <div>
               <label className="block text-theme-xs font-medium text-gray-500 dark:text-gray-400 mb-1">Département</label>
-              <select value={filters.departement} onChange={e => setFilters({ ...filters, departement: e.target.value })} className={selectClass}>
-                <option value="">Tous</option>
-                {departements.map((d: Referentiel) => <option key={d.id} value={d.libelle}>{d.libelle}</option>)}
-              </select>
+              <FormSelect
+                value={filters.departement}
+                onChange={val => setFilters({ ...filters, departement: val })}
+                options={departements.map((d: Referentiel) => ({ value: d.libelle, label: d.libelle }))}
+                placeholder="Tous"
+              />
             </div>
             <div>
               <label className="block text-theme-xs font-medium text-gray-500 dark:text-gray-400 mb-1">Type contrat</label>
-              <select value={filters.typeContrat} onChange={e => setFilters({ ...filters, typeContrat: e.target.value })} className={selectClass}>
-                <option value="">Tous</option>
-                {typesContrat.map((t: Referentiel) => <option key={t.id} value={t.libelle}>{t.libelle}</option>)}
-              </select>
+              <FormSelect
+                value={filters.typeContrat}
+                onChange={val => setFilters({ ...filters, typeContrat: val })}
+                options={typesContrat.map((t: Referentiel) => ({ value: t.libelle, label: t.libelle }))}
+                placeholder="Tous"
+              />
             </div>
             <div>
               <label className="block text-theme-xs font-medium text-gray-500 dark:text-gray-400 mb-1">Genre</label>
-              <select value={filters.genre} onChange={e => setFilters({ ...filters, genre: e.target.value })} className={selectClass}>
-                <option value="">Tous</option>
-                {genres.map((g: Referentiel) => <option key={g.id} value={g.libelle}>{g.libelle}</option>)}
-              </select>
+              <FormSelect
+                value={filters.genre}
+                onChange={val => setFilters({ ...filters, genre: val })}
+                options={genres.map((g: Referentiel) => ({ value: g.libelle, label: g.libelle }))}
+                placeholder="Tous"
+              />
             </div>
             <div>
               <label className="block text-theme-xs font-medium text-gray-500 dark:text-gray-400 mb-1">Poste</label>
-              <select value={filters.poste} onChange={e => setFilters({ ...filters, poste: e.target.value })} className={selectClass}>
-                <option value="">Tous</option>
-                {postes.map((p: Referentiel) => <option key={p.id} value={p.libelle}>{p.libelle}</option>)}
-              </select>
+              <FormSelect
+                value={filters.poste}
+                onChange={val => setFilters({ ...filters, poste: val })}
+                options={postes.map((p: Referentiel) => ({ value: p.libelle, label: p.libelle }))}
+                placeholder="Tous"
+              />
             </div>
             <div>
               <label className="block text-theme-xs font-medium text-gray-500 dark:text-gray-400 mb-1">Embauché depuis</label>
-              <input type="date" value={filters.dateEmbaucheFrom} onChange={e => setFilters({ ...filters, dateEmbaucheFrom: e.target.value })} className={inputClass} />
+              <FormDatePicker value={filters.dateEmbaucheFrom} onChange={val => setFilters({ ...filters, dateEmbaucheFrom: val })} />
             </div>
             <div>
               <label className="block text-theme-xs font-medium text-gray-500 dark:text-gray-400 mb-1">Embauché jusqu'à</label>
-              <input type="date" value={filters.dateEmbaucheTo} onChange={e => setFilters({ ...filters, dateEmbaucheTo: e.target.value })} className={inputClass} />
+              <FormDatePicker value={filters.dateEmbaucheTo} onChange={val => setFilters({ ...filters, dateEmbaucheTo: val })} min={filters.dateEmbaucheFrom} />
             </div>
             <div>
               <label className="block text-theme-xs font-medium text-gray-500 dark:text-gray-400 mb-1">Salaire min</label>
@@ -796,12 +1029,13 @@ const EmployesPage: React.FC = () => {
           </div>
           <div>
             <label className="block text-theme-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Genre *</label>
-            <select value={formData.genre} onChange={(e) => setFormData({ ...formData, genre: e.target.value })} className={submitted && formErrors.genre ? inputErrorClass : selectClass}>
-              <option value="">Sélectionner</option>
-              {genres.map((g: Referentiel) => (
-                <option key={g.id} value={g.libelle}>{g.libelle}</option>
-              ))}
-            </select>
+            <FormSelect
+              value={formData.genre}
+              onChange={val => setFormData({ ...formData, genre: val })}
+              options={genres.map((g: Referentiel) => ({ value: g.libelle, label: g.libelle }))}
+              placeholder="Sélectionner"
+              error={!!(submitted && formErrors.genre)}
+            />
             {submitted && formErrors.genre && <p className="text-theme-xs text-error-500 mt-1">Le genre est obligatoire</p>}
           </div>
           <div>
@@ -831,32 +1065,35 @@ const EmployesPage: React.FC = () => {
           </div>
           <div>
             <label className="block text-theme-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Poste *</label>
-            <select value={formData.poste} onChange={(e) => setFormData({ ...formData, poste: e.target.value })} className={submitted && formErrors.poste ? inputErrorClass : selectClass}>
-              <option value="">Sélectionner un poste</option>
-              {postes.map((p: Referentiel) => (
-                <option key={p.id} value={p.libelle}>{p.libelle}</option>
-              ))}
-            </select>
+            <FormSelect
+              value={formData.poste}
+              onChange={val => setFormData({ ...formData, poste: val })}
+              options={postes.map((p: Referentiel) => ({ value: p.libelle, label: p.libelle }))}
+              placeholder="Sélectionner un poste"
+              error={!!(submitted && formErrors.poste)}
+            />
             {submitted && formErrors.poste && <p className="text-theme-xs text-error-500 mt-1">Le poste est obligatoire</p>}
           </div>
           <div>
             <label className="block text-theme-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Département *</label>
-            <select value={formData.departement} onChange={(e) => setFormData({ ...formData, departement: e.target.value })} className={submitted && formErrors.departement ? inputErrorClass : selectClass}>
-              <option value="">Sélectionner un département</option>
-              {departements.map((d: Referentiel) => (
-                <option key={d.id} value={d.libelle}>{d.libelle}</option>
-              ))}
-            </select>
+            <FormSelect
+              value={formData.departement}
+              onChange={val => setFormData({ ...formData, departement: val })}
+              options={departements.map((d: Referentiel) => ({ value: d.libelle, label: d.libelle }))}
+              placeholder="Sélectionner un département"
+              error={!!(submitted && formErrors.departement)}
+            />
             {submitted && formErrors.departement && <p className="text-theme-xs text-error-500 mt-1">Le département est obligatoire</p>}
           </div>
           <div>
             <label className="block text-theme-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Type contrat *</label>
-            <select value={formData.typeContrat} onChange={(e) => setFormData({ ...formData, typeContrat: e.target.value })} className={submitted && formErrors.typeContrat ? inputErrorClass : selectClass}>
-              <option value="">Sélectionner un type</option>
-              {typesContrat.map((t: Referentiel) => (
-                <option key={t.id} value={t.libelle}>{t.libelle}</option>
-              ))}
-            </select>
+            <FormSelect
+              value={formData.typeContrat}
+              onChange={val => setFormData({ ...formData, typeContrat: val })}
+              options={typesContrat.map((t: Referentiel) => ({ value: t.libelle, label: t.libelle }))}
+              placeholder="Sélectionner un type"
+              error={!!(submitted && formErrors.typeContrat)}
+            />
             {/* Ajout CIVP: durée automatique */}
             {formData.typeContrat && formData.typeContrat.toUpperCase() === 'CIVP' && formData.dateEmbauche && (() => {
               const embauche = new Date(formData.dateEmbauche);
@@ -885,7 +1122,7 @@ const EmployesPage: React.FC = () => {
           </div>
           <div>
             <label className="block text-theme-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Date d'embauche *</label>
-            <input type="date" value={formData.dateEmbauche} onChange={(e) => setFormData({ ...formData, dateEmbauche: e.target.value })} max={todayStr} className={submitted && formErrors.dateEmbauche ? inputErrorClass : inputClass} />
+            <FormDatePicker value={formData.dateEmbauche} onChange={val => setFormData({ ...formData, dateEmbauche: val })} max={todayStr} error={!!(submitted && formErrors.dateEmbauche)} />
             {submitted && formErrors.dateEmbauche && <p className="text-theme-xs text-error-500 mt-1">{!formData.dateEmbauche ? "La date d'embauche est obligatoire" : "La date d'embauche ne peut pas être dans le futur"}</p>}
             {/* Champ date de fin de contrat CIVP sous date d'embauche */}
             {formData.typeContrat && formData.typeContrat.toUpperCase() === 'CIVP' && formData.dateEmbauche && (
@@ -900,7 +1137,7 @@ const EmployesPage: React.FC = () => {
                     setFormData({ ...formData, dateFinContrat: dateFinStr });
                   }
                   return (
-                    <input type="date" value={dateFinStr} readOnly className={inputClass} />
+                    <FormDatePicker value={dateFinStr} onChange={() => {}} readOnly />
                   );
                 })()}
               </div>
@@ -914,12 +1151,12 @@ const EmployesPage: React.FC = () => {
           </div>
           <div>
             <label className="block text-theme-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Manager</label>
-            <select value={formData.managerId ?? ''} onChange={(e) => setFormData({ ...formData, managerId: e.target.value ? Number(e.target.value) : null })} className={selectClass}>
-              <option value="">Aucun manager</option>
-              {managers.filter((m: Employe) => m.id !== editingEmploye?.id).map((m: Employe) => (
-                <option key={m.id} value={m.id}>{m.prenom} {m.nom}</option>
-              ))}
-            </select>
+            <FormSelect
+              value={formData.managerId != null ? String(formData.managerId) : ''}
+              onChange={val => setFormData({ ...formData, managerId: val ? Number(val) : null })}
+              options={managers.filter((m: Employe) => m.id !== editingEmploye?.id).map((m: Employe) => ({ value: String(m.id), label: `${m.prenom} ${m.nom}` }))}
+              placeholder="Aucun manager"
+            />
           </div>
         </div>
 
@@ -1280,13 +1517,15 @@ const EmployesPage: React.FC = () => {
           </div>
           <div>
             <label className="block text-theme-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Type</label>
-            <select value={documentForm.type} onChange={e => setDocumentForm({ ...documentForm, type: e.target.value })} className={selectClass}>
-              {docTypes.map(t => <option key={t} value={t}>{t}</option>)}
-            </select>
+            <FormSelect
+              value={documentForm.type}
+              onChange={val => setDocumentForm({ ...documentForm, type: val })}
+              options={docTypes.map(t => ({ value: t, label: t }))}
+            />
           </div>
           <div>
             <label className="block text-theme-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Date d'expiration</label>
-            <input type="date" value={documentForm.dateExpiration} onChange={e => setDocumentForm({ ...documentForm, dateExpiration: e.target.value })} className={inputClass} />
+            <FormDatePicker value={documentForm.dateExpiration} onChange={val => setDocumentForm({ ...documentForm, dateExpiration: val })} />
           </div>
           <div>
             <label className="block text-theme-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Fichier</label>

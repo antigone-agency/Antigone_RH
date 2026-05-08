@@ -54,6 +54,19 @@ public class EmployeService {
     private final CalendrierRepository calendrierRepository;
     private final HoraireTravailRepository horaireTravailRepository;
     private final NotificationService notificationService;
+    private final PointageRepository pointageRepository;
+    private final HeartbeatRepository heartbeatRepository;
+    private final PresenceConfirmationRepository presenceConfirmationRepository;
+    private final DocumentEmployeRepository documentEmployeRepository;
+    private final CompetenceRepository competenceRepository;
+    private final AutorisationRepository autorisationRepository;
+    private final RapportInactiviteRepository rapportInactiviteRepository;
+    private final TeletravailRepository teletravailRepository;
+    private final TacheObligatoireRepository tacheObligatoireRepository;
+    private final MediaPlanAssignmentRepository mediaPlanAssignmentRepository;
+    private final ReunionRepository reunionRepository;
+    private final CalendrierProjetRepository calendrierProjetRepository;
+    private final ReactifInternRepository reactifInternRepository;
 
     private static final SecureRandom RANDOM = new SecureRandom();
 
@@ -65,8 +78,7 @@ public class EmployeService {
             DayOfWeek.THURSDAY, "JEUDI",
             DayOfWeek.FRIDAY, "VENDREDI",
             DayOfWeek.SATURDAY, "SAMEDI",
-            DayOfWeek.SUNDAY, "DIMANCHE"
-    );
+            DayOfWeek.SUNDAY, "DIMANCHE");
 
     public List<EmployeDTO> findAll() {
         return employeRepository.findAll().stream()
@@ -105,16 +117,26 @@ public class EmployeService {
     }
 
     private void normalizeEmptyStrings(EmployeDTO dto) {
-        if (dto.getCin() != null && dto.getCin().trim().isEmpty()) dto.setCin(null);
-        if (dto.getCnss() != null && dto.getCnss().trim().isEmpty()) dto.setCnss(null);
-        if (dto.getRibBancaire() != null && dto.getRibBancaire().trim().isEmpty()) dto.setRibBancaire(null);
-        if (dto.getGenre() != null && dto.getGenre().trim().isEmpty()) dto.setGenre(null);
-        if (dto.getGenre() != null) dto.setGenre(dto.getGenre().trim().toUpperCase());
-        if (dto.getPoste() != null && dto.getPoste().trim().isEmpty()) dto.setPoste(null);
-        if (dto.getTypeContrat() != null && dto.getTypeContrat().trim().isEmpty()) dto.setTypeContrat(null);
-        if (dto.getDepartement() != null && dto.getDepartement().trim().isEmpty()) dto.setDepartement(null);
-        if (dto.getTelephone() != null && dto.getTelephone().trim().isEmpty()) dto.setTelephone(null);
-        if (dto.getTelephonePro() != null && dto.getTelephonePro().trim().isEmpty()) dto.setTelephonePro(null);
+        if (dto.getCin() != null && dto.getCin().trim().isEmpty())
+            dto.setCin(null);
+        if (dto.getCnss() != null && dto.getCnss().trim().isEmpty())
+            dto.setCnss(null);
+        if (dto.getRibBancaire() != null && dto.getRibBancaire().trim().isEmpty())
+            dto.setRibBancaire(null);
+        if (dto.getGenre() != null && dto.getGenre().trim().isEmpty())
+            dto.setGenre(null);
+        if (dto.getGenre() != null)
+            dto.setGenre(dto.getGenre().trim().toUpperCase());
+        if (dto.getPoste() != null && dto.getPoste().trim().isEmpty())
+            dto.setPoste(null);
+        if (dto.getTypeContrat() != null && dto.getTypeContrat().trim().isEmpty())
+            dto.setTypeContrat(null);
+        if (dto.getDepartement() != null && dto.getDepartement().trim().isEmpty())
+            dto.setDepartement(null);
+        if (dto.getTelephone() != null && dto.getTelephone().trim().isEmpty())
+            dto.setTelephone(null);
+        if (dto.getTelephonePro() != null && dto.getTelephonePro().trim().isEmpty())
+            dto.setTelephonePro(null);
     }
 
     public EmployeDTO create(EmployeDTO dto) {
@@ -159,17 +181,17 @@ public class EmployeService {
         String nomComplet = saved.getNom() + " " + saved.getPrenom();
         notifyAdmins("Nouvel employé",
                 "Un nouvel employé a été ajouté : " + nomComplet
-                + " (" + saved.getMatricule() + ")"
-                + (saved.getDepartement() != null ? " - Département : " + saved.getDepartement() : "")
-                + (saved.getPoste() != null ? " - Poste : " + saved.getPoste() : ""));
+                        + " (" + saved.getMatricule() + ")"
+                        + (saved.getDepartement() != null ? " - Département : " + saved.getDepartement() : "")
+                        + (saved.getPoste() != null ? " - Poste : " + saved.getPoste() : ""));
 
         // Notify the manager if assigned
         if (saved.getManager() != null) {
             notificationService.create(saved.getManager(),
                     "Nouveau subordonné",
                     "Un nouvel employé vous a été affecté : " + nomComplet
-                    + " (" + saved.getMatricule() + ")"
-                    + (saved.getPoste() != null ? " - Poste : " + saved.getPoste() : ""),
+                            + " (" + saved.getMatricule() + ")"
+                            + (saved.getPoste() != null ? " - Poste : " + saved.getPoste() : ""),
                     null);
         }
 
@@ -192,7 +214,8 @@ public class EmployeService {
     }
 
     /**
-     * Génère un matricule unique : 3 premières lettres du département + 4 chiffres aléatoires.
+     * Génère un matricule unique : 3 premières lettres du département + 4 chiffres
+     * aléatoires.
      * Le matricule sert aussi de login pour se connecter.
      */
     private String generateMatricule(String departement) {
@@ -283,14 +306,16 @@ public class EmployeService {
 
         // Notify new manager if manager changed
         Employe nouveauManager = saved.getManager();
-        if (nouveauManager != null && (ancienManager == null || !ancienManager.getId().equals(nouveauManager.getId()))) {
+        if (nouveauManager != null
+                && (ancienManager == null || !ancienManager.getId().equals(nouveauManager.getId()))) {
             notificationService.create(nouveauManager,
                     "Nouveau subordonné",
                     "L'employé " + nomComplet + " (" + saved.getMatricule() + ") vous a été affecté.",
                     null);
         }
         // Notify old manager if they lost a subordinate
-        if (ancienManager != null && (nouveauManager == null || !ancienManager.getId().equals(nouveauManager.getId()))) {
+        if (ancienManager != null
+                && (nouveauManager == null || !ancienManager.getId().equals(nouveauManager.getId()))) {
             notificationService.create(ancienManager,
                     "Subordonné réaffecté",
                     "L'employé " + nomComplet + " (" + saved.getMatricule() + ") ne fait plus partie de votre équipe.",
@@ -311,8 +336,8 @@ public class EmployeService {
         // Notify admins about deletion
         notifyAdmins("Employé supprimé",
                 "L'employé " + nomComplet + " (" + matricule + ")"
-                + (employe.getDepartement() != null ? " - " + employe.getDepartement() : "")
-                + " a été supprimé du système.");
+                        + (employe.getDepartement() != null ? " - " + employe.getDepartement() : "")
+                        + " a été supprimé du système.");
 
         // Notify the manager about subordinate removal
         if (manager != null) {
@@ -363,6 +388,51 @@ public class EmployeService {
         // Supprimer les demandes (cascade supprime validations/historique liés)
         demandeRepository.deleteAll(demandeRepository.findByEmployeId(employe.getId()));
 
+        // Supprimer les congés
+        congeRepository.deleteAll(congeRepository.findByEmployeId(employe.getId()));
+
+        // Supprimer les pointages
+        pointageRepository.deleteAll(pointageRepository.findByEmployeId(employe.getId()));
+
+        // Supprimer les heartbeats
+        heartbeatRepository.deleteAll(heartbeatRepository.findByEmployeId(employe.getId()));
+
+        // Supprimer les confirmations de présence
+        presenceConfirmationRepository.deleteAll(presenceConfirmationRepository.findByEmployeId(employe.getId()));
+
+        // Supprimer les documents
+        documentEmployeRepository.deleteAll(documentEmployeRepository.findByEmployeId(employe.getId()));
+
+        // Supprimer les compétences
+        competenceRepository.deleteAll(competenceRepository.findByEmployeId(employe.getId()));
+
+        // Supprimer les autorisations
+        autorisationRepository.deleteAll(autorisationRepository.findByEmployeId(employe.getId()));
+
+        // Supprimer les rapports d'inactivité
+        rapportInactiviteRepository.deleteAll(rapportInactiviteRepository.findByEmployeId(employe.getId()));
+
+        // Supprimer les télétravail
+        teletravailRepository.deleteAll(teletravailRepository.findByEmployeId(employe.getId()));
+
+        // Supprimer les tâches obligatoires
+        tacheObligatoireRepository.deleteAll(tacheObligatoireRepository.findByEmployeId(employe.getId()));
+
+        // Supprimer les assignments de médiaplan
+        mediaPlanAssignmentRepository.deleteAll(mediaPlanAssignmentRepository.findByEmployeId(employe.getId()));
+
+        // Supprimer les réunions (initiateur ou participant)
+        reunionRepository.deleteAll(reunionRepository.findByEmploye(employe.getId()));
+
+        // Supprimer les entrées calendrier_projet où l'employé est manager ou
+        // social_manager
+        calendrierProjetRepository.deleteAll(calendrierProjetRepository.findByManagerId(employe.getId()));
+        calendrierProjetRepository.deleteAll(calendrierProjetRepository.findBySocialManagerId(employe.getId()));
+
+        // Supprimer les réactifs internes liés à l'employé (comme auteur ou assigné)
+        reactifInternRepository.deleteAll(reactifInternRepository.findByEmployeId(employe.getId()));
+        reactifInternRepository.deleteAll(reactifInternRepository.findByManagerId(employe.getId()));
+
         // Supprimer les access logs et le compte
         if (employe.getCompte() != null) {
             accessLogRepository.deleteAll(
@@ -384,8 +454,8 @@ public class EmployeService {
         notificationService.create(employe,
                 "Solde congé modifié",
                 "Votre solde de congé a été mis à jour."
-                + (ancienSolde != null ? " Ancien solde : " + ancienSolde + " jours." : "")
-                + " Nouveau solde : " + solde + " jours.",
+                        + (ancienSolde != null ? " Ancien solde : " + ancienSolde + " jours." : "")
+                        + " Nouveau solde : " + solde + " jours.",
                 null);
     }
 
@@ -440,7 +510,8 @@ public class EmployeService {
      * Rules:
      * - 1ère année : 18 jours/an (1.5 jours/mois)
      * - À partir de la 2ème année : 24 jours/an (2 jours/mois)
-     * - Le solde est proratisé selon les mois travaillés dans l'année de congé en cours
+     * - Le solde est proratisé selon les mois travaillés dans l'année de congé en
+     * cours
      * - L'année de congé va d'anniversaire d'embauche à anniversaire d'embauche
      */
     public SoldeCongeInfo getSoldeCongeInfo(Long employeId) {
@@ -510,10 +581,12 @@ public class EmployeService {
         for (int m = 0; m < moisTravailles; m++) {
             LocalDate moisDebut = debutAnneeConge.plusMonths(m);
             LocalDate moisFin = debutAnneeConge.plusMonths(m + 1).minusDays(1);
-            if (moisFin.isAfter(today)) moisFin = today;
+            if (moisFin.isAfter(today))
+                moisFin = today;
 
             int joursOuvMois = countWorkingDaysInPeriod(moisDebut, moisFin);
-            if (joursOuvMois == 0) continue;
+            if (joursOuvMois == 0)
+                continue;
 
             // Count congé sans solde working days overlapping this month
             int joursCssDansMois = 0;
@@ -572,7 +645,8 @@ public class EmployeService {
         // Total available = acquired this year + carry-over - consumed this year
         joursAcquis += joursReportes;
 
-        // Consumed congés payés (APPROUVEE) this congé year — use nombreJours (jours effectifs)
+        // Consumed congés payés (APPROUVEE) this congé year — use nombreJours (jours
+        // effectifs)
         List<Conge> approuves = congeRepository.findByEmployeIdAndTypeCongeAndStatutAndDateDebutBetween(
                 employeId, TypeConge.CONGE_PAYE, StatutDemande.APPROUVEE,
                 debutAnneeConge, finAnneeConge);
@@ -580,7 +654,8 @@ public class EmployeService {
                 .mapToDouble(c -> c.getNombreJours() != null ? c.getNombreJours() : 0)
                 .sum();
 
-        // Pending congés payés (EN_ATTENTE) this congé year — use nombreJours (jours effectifs)
+        // Pending congés payés (EN_ATTENTE) this congé year — use nombreJours (jours
+        // effectifs)
         List<Conge> enAttente = congeRepository.findByEmployeIdAndTypeCongeAndStatutAndDateDebutBetween(
                 employeId, TypeConge.CONGE_PAYE, StatutDemande.EN_ATTENTE,
                 debutAnneeConge, finAnneeConge);
@@ -625,7 +700,8 @@ public class EmployeService {
     }
 
     /**
-     * Count working days based on HoraireTravail (not hardcoded Sat/Sun) excluding holidays.
+     * Count working days based on HoraireTravail (not hardcoded Sat/Sun) excluding
+     * holidays.
      */
     private int countWorkingDaysInPeriod(LocalDate start, LocalDate end) {
         Set<LocalDate> holidays = calendrierRepository
@@ -759,8 +835,8 @@ public class EmployeService {
     }
 
     public List<EmployeDTO> advancedSearch(String departement, String typeContrat, String genre,
-                                            String poste, String dateEmbaucheFrom, String dateEmbaucheTo,
-                                            Double salaireMin, Double salaireMax, Long managerId, String q) {
+            String poste, String dateEmbaucheFrom, String dateEmbaucheTo,
+            Double salaireMin, Double salaireMax, Long managerId, String q) {
         List<Employe> all = employeRepository.findAll();
         return all.stream()
                 .filter(e -> departement == null || departement.isEmpty() || departement.equals(e.getDepartement()))
@@ -768,20 +844,25 @@ public class EmployeService {
                 .filter(e -> genre == null || genre.isEmpty() || genre.equalsIgnoreCase(e.getGenre()))
                 .filter(e -> poste == null || poste.isEmpty() || poste.equals(e.getPoste()))
                 .filter(e -> {
-                    if (dateEmbaucheFrom == null || dateEmbaucheFrom.isEmpty()) return true;
-                    if (e.getDateEmbauche() == null) return false;
+                    if (dateEmbaucheFrom == null || dateEmbaucheFrom.isEmpty())
+                        return true;
+                    if (e.getDateEmbauche() == null)
+                        return false;
                     return !e.getDateEmbauche().isBefore(LocalDate.parse(dateEmbaucheFrom));
                 })
                 .filter(e -> {
-                    if (dateEmbaucheTo == null || dateEmbaucheTo.isEmpty()) return true;
-                    if (e.getDateEmbauche() == null) return false;
+                    if (dateEmbaucheTo == null || dateEmbaucheTo.isEmpty())
+                        return true;
+                    if (e.getDateEmbauche() == null)
+                        return false;
                     return !e.getDateEmbauche().isAfter(LocalDate.parse(dateEmbaucheTo));
                 })
                 .filter(e -> salaireMin == null || (e.getSalaire() != null && e.getSalaire() >= salaireMin))
                 .filter(e -> salaireMax == null || (e.getSalaire() != null && e.getSalaire() <= salaireMax))
                 .filter(e -> managerId == null || (e.getManager() != null && e.getManager().getId().equals(managerId)))
                 .filter(e -> {
-                    if (q == null || q.isEmpty()) return true;
+                    if (q == null || q.isEmpty())
+                        return true;
                     String lower = q.toLowerCase();
                     return (e.getNom() != null && e.getNom().toLowerCase().contains(lower))
                             || (e.getPrenom() != null && e.getPrenom().toLowerCase().contains(lower))
@@ -797,7 +878,8 @@ public class EmployeService {
         StringBuilder sb = new StringBuilder();
         // BOM for Excel UTF-8
         sb.append('\uFEFF');
-        sb.append("Matricule;Nom;Prénom;Email;Genre;CIN;CNSS;Téléphone;Téléphone Pro;Poste;Département;Type Contrat;Date Embauche;Salaire;Solde Congé;Manager;RIB\n");
+        sb.append(
+                "Matricule;Nom;Prénom;Email;Genre;CIN;CNSS;Téléphone;Téléphone Pro;Poste;Département;Type Contrat;Date Embauche;Salaire;Solde Congé;Manager;RIB\n");
         for (Employe e : all) {
             sb.append(csvField(e.getMatricule())).append(';');
             sb.append(csvField(e.getNom())).append(';');
@@ -814,7 +896,8 @@ public class EmployeService {
             sb.append(e.getDateEmbauche() != null ? e.getDateEmbauche().toString() : "").append(';');
             sb.append(e.getSalaire() != null ? e.getSalaire().toString() : "").append(';');
             sb.append(e.getSoldeConge() != null ? e.getSoldeConge().toString() : "").append(';');
-            sb.append(e.getManager() != null ? e.getManager().getNom() + " " + e.getManager().getPrenom() : "").append(';');
+            sb.append(e.getManager() != null ? e.getManager().getNom() + " " + e.getManager().getPrenom() : "")
+                    .append(';');
             sb.append(csvField(e.getRibBancaire()));
             sb.append('\n');
         }
@@ -822,7 +905,8 @@ public class EmployeService {
     }
 
     private String csvField(String value) {
-        if (value == null) return "";
+        if (value == null)
+            return "";
         if (value.contains(";") || value.contains("\"") || value.contains("\n")) {
             return "\"" + value.replace("\"", "\"\"") + "\"";
         }
@@ -875,7 +959,9 @@ public class EmployeService {
                 .departement(employe.getDepartement())
                 .ribBancaire(employe.getRibBancaire())
                 .managerId(employe.getManager() != null ? employe.getManager().getId() : null)
-                .managerNom(employe.getManager() != null ? employe.getManager().getNom() + " " + employe.getManager().getPrenom() : null)
+                .managerNom(employe.getManager() != null
+                        ? employe.getManager().getNom() + " " + employe.getManager().getPrenom()
+                        : null)
                 .imageUrl(employe.getImageUrl())
                 .lienDrive(employe.getLienDrive())
                 .build();

@@ -15,6 +15,8 @@ public interface PointageRepository extends JpaRepository<Pointage, Long> {
 
     Optional<Pointage> findByEmployeIdAndDatePointage(Long employeId, LocalDate date);
 
+    List<Pointage> findByEmployeId(Long employeId);
+
     List<Pointage> findByDatePointage(LocalDate date);
 
     List<Pointage> findByEmployeIdAndDatePointageBetween(Long employeId, LocalDate debut, LocalDate fin);

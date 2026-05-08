@@ -1,6 +1,8 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { NavLink, useLocation, useNavigate } from 'react-router-dom';
 import {
+  HiChevronLeft,
+  HiChevronRight,
   HiOutlineBell,
   HiOutlineBriefcase,
   HiOutlineCalendar,
@@ -947,6 +949,16 @@ const Sidebar: React.FC = () => {
           )}
         </div>
       </aside>
+
+      {/* Bouton toggle intégré au bord droit de la rail */}
+      <button
+        type="button"
+        className={`pc-rail-toggle-btn ${!isRailVisible ? 'rail-hidden' : ''}`}
+        onClick={toggleRail}
+        aria-label={isRailVisible ? 'Fermer la barre' : 'Ouvrir la barre'}
+      >
+        {isRailVisible ? <HiChevronLeft size={12} /> : <HiChevronRight size={12} />}
+      </button>
 
       {isExpanded && isRailVisible && <button type="button" className="pc-panel-overlay" onClick={closeAllPanels} aria-label="Fermer le panel" />}
 

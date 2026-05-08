@@ -1,6 +1,46 @@
 // Client API pour communiquer avec le backend Spring Boot
 const axios = require('axios');
 const config = require('./config');
+const { EventEmitter } = require('events');
+
+const authEvents = new EventEmitter();
+let reloginInProgress = null;
+
+// Tentative de reconnexion silencieuse avec les credentials sauvegardés
+async function silentRelogin() {
+  if (reloginInProgress) return reloginInProgress;
+  reloginInProgress = (async () => {
+    try {
+      const creds = config.getCredentials();
+      if (!creds) {
+        console.warn('[API] Aucun credential sauvegardé, reconnexion automatique impossible');
+        return false;
+      }
+      console.log('[API] Token expiré — tentative de reconnexion silencieuse...');
+      const serverUrl = config.get('serverUrl');
+      const response = await axios.post(`${serverUrl}/api/auth/login`, {
+        username: creds.username,
+        password: creds.password
+      }, { timeout: 10000 });
+      const apiResponse = response.data;
+      if (!apiResponse.success || !apiResponse.data?.token) return false;
+      const loginData = apiResponse.data;
+      config.set('token', loginData.token);
+      config.set('isLoggedIn', true);
+      config.set('employeId', loginData.employeId);
+      config.set('nom', loginData.nom);
+      config.set('prenom', loginData.prenom);
+      console.log('[API] Reconnexion silencieuse réussie');
+      return true;
+    } catch (err) {
+      console.error('[API] Reconnexion silencieuse échouée:', err.message);
+      return false;
+    } finally {
+      reloginInProgress = null;
+    }
+  })();
+  return reloginInProgress;
+}
 
 function getClient() {
   const serverUrl = config.get('serverUrl');
@@ -14,6 +54,27 @@ function getClient() {
       ...(token ? { Authorization: `Bearer ${token}` } : {})
     }
   });
+
+  // Intercepteur : si le serveur répond 401/403, tenter un re-login silencieux
+  client.interceptors.response.use(
+    response => response,
+    async (error) => {
+      const status = error?.response?.status;
+      if ((status === 401 || status === 403) && !error.config._retried) {
+        error.config._retried = true;
+        const ok = await silentRelogin();
+        if (ok) {
+          error.config.headers['Authorization'] = `Bearer ${config.get('token')}`;
+          return axios(error.config);
+        }
+        // Re-login échoué : nettoyer la session et notifier le processus principal
+        config.clearSession();
+        authEvents.emit('session-expired');
+        error._handled = true;
+      }
+      return Promise.reject(error);
+    }
+  );
 
   return client;
 }
@@ -44,6 +105,7 @@ async function login(username, password) {
     config.set('prenom', loginData.prenom);
     config.set('token', loginData.token);
     config.set('isLoggedIn', true);
+    config.saveCredentials(loginData.username, password);
     
     // Charger la config du serveur
     await fetchConfig();
@@ -172,9 +234,11 @@ async function sendPresenceConfirm(confirmed) {
 }
 
 function handleAuthFailure(error) {
+  if (error?._handled) return; // Déjà géré par l'intercepteur axios
   if (error?.response?.status === 401 || error?.response?.status === 403) {
     console.warn('[API] Session agent expirée ou refusée, nettoyage de la session locale');
     config.clearSession();
+    authEvents.emit('session-expired');
   }
 }
 
@@ -183,5 +247,6 @@ module.exports = {
   fetchConfig,
   sendHeartbeat,
   sendEvent,
-  sendPresenceConfirm
+  sendPresenceConfirm,
+  authEvents
 };
