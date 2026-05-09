@@ -347,20 +347,22 @@ public class EmployeService {
                     null);
         }
 
-        // Détacher l'employé des équipes
-        for (var equipe : employe.getEquipes()) {
-            equipe.getMembres().remove(employe);
-        }
-        equipeRepository.saveAll(employe.getEquipes());
+        // Détacher l'employé des équipes (requête native pour éviter les membres
+        // fantômes)
+        equipeRepository.removeEmployeFromAllEquipes(employe.getId());
 
         // Détacher les subordonnés
         for (Employe sub : employe.getSubordonnes()) {
             sub.setManager(null);
         }
 
-        // Détacher des projets (chef de projet)
-        projetRepository.findAll().stream()
-                .filter(p -> employe.equals(p.getChefDeProjet()))
+        // Détacher des projets : membres et chefs (requêtes natives pour éviter les
+        // proxies fantômes)
+        projetRepository.removeEmployeFromAllProjetsMembers(employe.getId());
+        projetRepository.removeEmployeFromAllProjetsChefs(employe.getId());
+
+        // Détacher des projets (chef de projet — relation ManyToOne simple)
+        projetRepository.findByChefDeProjetId(employe.getId())
                 .forEach(p -> p.setChefDeProjet(null));
 
         // Détacher les tâches assignées

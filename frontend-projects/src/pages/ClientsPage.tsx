@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { motion } from 'framer-motion';
 import {
     HiOutlinePlus,
     HiOutlineSearch,
@@ -84,6 +85,9 @@ const ClientsPage: React.FC = () => {
     // Modal credentials (comme employés)
     const [showCredModal, setShowCredModal] = useState(false);
     const [credentials, setCredentials] = useState<{ login: string; password: string } | null>(null);
+
+    // Cache-buster pour les logos (mis à jour après chaque sauvegarde)
+    const [imgTs, setImgTs] = useState(() => Date.now());
 
     // Modal détail
     const [viewing, setViewing] = useState<ClientDTO | null>(null);
@@ -210,6 +214,7 @@ const ClientsPage: React.FC = () => {
             }
             closeModal();
             await load();
+            setImgTs(Date.now()); // force le rechargement des images logo
         } catch (e: any) {
             setError(e?.response?.data?.message ?? 'Erreur lors de la sauvegarde.');
         } finally {
@@ -295,86 +300,150 @@ const ClientsPage: React.FC = () => {
             ) : filtered.length === 0 ? (
                 <div className="py-20 text-center text-gray-400">Aucun client trouvé</div>
             ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                    {filtered.map(c => {
-                        // Generate a pseudo-random color based on the client name length to give a unique feel
-                        const colors = ['bg-blue-50 text-blue-600 dark:bg-blue-500/10 dark:text-blue-400', 'bg-emerald-50 text-emerald-600 dark:bg-emerald-500/10 dark:text-emerald-400', 'bg-violet-50 text-violet-600 dark:bg-violet-500/10 dark:text-violet-400', 'bg-amber-50 text-amber-600 dark:bg-amber-500/10 dark:text-amber-400', 'bg-pink-50 text-pink-600 dark:bg-pink-500/10 dark:text-pink-400'];
-                        const colorClass = colors[c.nom.length % colors.length];
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5 pt-12">
+                    {filtered.map((c, idx) => {
+                        const avatarBgs = ['bg-blue-500','bg-emerald-500','bg-violet-500','bg-amber-500','bg-pink-500'];
+                        const avatarBg = avatarBgs[c.nom.length % avatarBgs.length];
                         const baseApi = window.location.hostname === 'localhost' ? 'http://localhost:8080' : 'https://rh-antigone.onrender.com';
+                        const pages = c.clientPages ? c.clientPages.split(',').map(p => p.trim()).filter(Boolean) : [];
+                        const pageLabel: Record<string,string> = { MEDIA_PLANS:'Méd', PROJETS:'Pro', FICHIERS:'Fic' };
+                        const pageFull: Record<string,string> = { MEDIA_PLANS:'Médias', PROJETS:'Projets', FICHIERS:'Fichiers' };
 
                         return (
-                        <div key={c.id} className="relative group rounded-3xl border border-black/5 dark:border-white/10 bg-white/60 dark:bg-gray-900/60 backdrop-blur-xl p-6 shadow-[0_8px_30px_-10px_rgba(0,0,0,0.06)] dark:shadow-none hover:-translate-y-1 hover:shadow-xl transition-all duration-300">
-                            {/* Card Header: Avatar & Nom */}
-                            <div className="flex items-start justify-between mb-4">
-                                <div className={`flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl ${colorClass} font-bold text-xl shadow-sm`}>
-                                    {c.logoUrl ? (
-                                        <img src={`${baseApi}${c.logoUrl}`} alt="" className="w-full h-full rounded-2xl object-cover" />
-                                    ) : (
-                                        c.nom.charAt(0).toUpperCase()
-                                    )}
-                                </div>
-                                {/* Actions (visible on hover) */}
-                                <div className="opacity-0 group-hover:opacity-100 transition-opacity flex gap-1">
-                                    <button onClick={() => { setViewing(c); setShowViewModal(true); }} className="p-1.5 rounded-lg text-gray-400 hover:text-blue-500 hover:bg-blue-50 dark:hover:bg-blue-500/10 transition-colors">
-                                        <HiOutlineEye size={18} />
-                                    </button>
-                                    {canEdit && (
-                                        <button onClick={() => openEdit(c)} className="p-1.5 rounded-lg text-gray-400 hover:text-brand-500 hover:bg-brand-50 dark:hover:bg-brand-500/10 transition-colors">
-                                            <HiOutlinePencil size={18} />
-                                        </button>
-                                    )}
-                                    {canDelete && (
-                                        <button onClick={() => handleDelete(c.id)} className="p-1.5 rounded-lg text-gray-400 hover:text-error-500 hover:bg-error-50 dark:hover:bg-error-500/10 transition-colors">
-                                            <HiOutlineTrash size={18} />
-                                        </button>
-                                    )}
-                                </div>
+                        <motion.div
+                            key={c.id}
+                            initial={{ opacity:0, y:16 }}
+                            animate={{ opacity:1, y:0 }}
+                            transition={{ duration:0.3, delay: idx * 0.04, ease:'easeOut' }}
+                            className="group relative mt-11 flex flex-col rounded-[20px] bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 shadow-md hover:shadow-lg transition-shadow duration-300"
+                        >
+                            {/* ── Avatar flottant au-dessus de la card ── */}
+                            <div className="absolute -top-11 left-1/2 -translate-x-1/2 w-[88px] h-[88px] rounded-full overflow-hidden border-4 border-white dark:border-gray-900 shadow-md z-10">
+                                {c.logoUrl
+                                    ? <img
+                                        src={`${baseApi}${c.logoUrl}?t=${imgTs}`}
+                                        alt=""
+                                        className="w-full h-full object-cover"
+                                        onError={(e) => {
+                                            e.currentTarget.style.display = 'none';
+                                            const parent = e.currentTarget.parentElement;
+                                            if (parent) {
+                                                parent.classList.add(...avatarBg.split(' '));
+                                                parent.innerHTML = `<span class="text-white text-[30px] font-medium flex items-center justify-center w-full h-full">${c.nom.charAt(0).toUpperCase()}</span>`;
+                                            }
+                                        }}
+                                      />
+                                    : <div className={`w-full h-full flex items-center justify-center text-white text-[30px] font-medium ${avatarBg}`}>
+                                        {c.nom.charAt(0).toUpperCase()}
+                                      </div>
+                                }
                             </div>
-                            
-                            {/* Card Body: Info */}
-                            <div>
-                                <h3 className="text-lg font-bold text-gray-800 dark:text-white mb-1 line-clamp-1">{c.nom}</h3>
-                                {c.adresse && <p className="text-xs text-gray-400 flex items-center gap-1 mb-3 truncate"><HiOutlineLocationMarker size={12} className="shrink-0"/> {c.adresse}</p>}
-                                
-                                <div className="space-y-1.5 mb-4">
-                                    {c.email && <p className="text-xs text-gray-500 flex items-center gap-1.5 truncate"><HiOutlineMail size={14} className="text-gray-400 shrink-0"/> {c.email}</p>}
-                                    {c.telephone && <p className="text-xs text-gray-500 flex items-center gap-1.5 truncate"><HiOutlinePhone size={14} className="text-gray-400 shrink-0"/> {c.telephone}</p>}
-                                </div>
 
-                                {/* Contact principal */}
-                                {c.contactNom && (
-                                    <div className="rounded-xl bg-gray-50 dark:bg-gray-800/50 p-3 mb-4 border border-black/5 dark:border-white/5">
-                                        <p className="text-[10px] uppercase font-bold text-gray-400 tracking-wider mb-1">Contact</p>
-                                        <p className="text-sm font-semibold text-gray-700 dark:text-gray-300 truncate"><HiOutlineUser className="inline mr-1" size={14}/> {c.contactNom}</p>
+                            <div className="flex flex-col px-5 pt-14 pb-5 gap-4">
+
+                                {/* ── Nom + poste (gauche) | badges accès (droite) ── */}
+                                <div className="flex items-start justify-between gap-2">
+                                    <div className="min-w-0">
+                                        <h3 className="text-[18px] font-bold text-gray-900 dark:text-white truncate">{c.nom}</h3>
+                                        <p className="text-[13px] text-gray-500 dark:text-gray-400 truncate mt-0.5">
+                                            {c.contactPoste || c.adresse || 'Client'}
+                                        </p>
                                     </div>
-                                )}
+                                    <div className="flex flex-col items-end gap-1 shrink-0 mt-0.5">
+                                        <div className="flex gap-2">
+                                            {pages.length > 0
+                                                ? pages.slice(0,3).map(p => (
+                                                    <div key={p} title={pageFull[p] ?? p}
+                                                        className="flex h-8 w-8 items-center justify-center rounded-lg bg-gray-100 dark:bg-gray-800 text-[10px] font-bold text-gray-600 dark:text-gray-300">
+                                                        {pageLabel[p] ?? p.charAt(0)}
+                                                    </div>
+                                                ))
+                                                : <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gray-100 dark:bg-gray-800 text-[10px] text-gray-400">—</div>
+                                            }
+                                        </div>
+                                        <span className="text-[11px] text-gray-400 tracking-wide">Accès</span>
+                                    </div>
+                                </div>
+
+                                {/* ── Stats row ── */}
+                                <div className="flex rounded-[14px] bg-gray-50 dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700 overflow-hidden mb-1">
+                                    <div className="flex-1 py-3 px-2 text-center border-r border-gray-200 dark:border-gray-700">
+                                        <div className="text-[15px] font-bold text-gray-900 dark:text-white truncate leading-tight">
+                                            {c.contactNom || '—'}
+                                        </div>
+                                        <div className="text-[11px] text-gray-400 mt-0.5">Contact</div>
+                                    </div>
+                                    <div className="flex-1 py-3 px-2 text-center border-r border-gray-200 dark:border-gray-700">
+                                        <div className="text-[15px] font-bold text-gray-900 dark:text-white truncate leading-tight">
+                                            {c.telephone || '—'}
+                                        </div>
+                                        <div className="text-[11px] text-gray-400 mt-0.5">Téléphone</div>
+                                    </div>
+                                    <div className="flex-1 py-3 px-2 text-center">
+                                        {c.hasAccount
+                                            ? <div className="text-[15px] font-bold text-emerald-500">Actif</div>
+                                            : <div className="text-[15px] font-bold text-gray-400">Aucun</div>
+                                        }
+                                        <div className="text-[11px] text-gray-400 mt-0.5">Compte</div>
+                                    </div>
+                                </div>
+
+                                {/* ── Bouton CTA ── */}
+                                <button
+                                    onClick={() => { setViewing(c); setShowViewModal(true); }}
+                                    className="w-full rounded-[14px] py-[13px] text-[15px] font-semibold bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-gray-100 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors duration-200"
+                                >
+                                    Voir le client
+                                </button>
+
                             </div>
 
-                            {/* Card Footer: Status & File */}
-                            <div className="flex items-center justify-between pt-4 border-t border-gray-100 dark:border-gray-800">
-                                {c.hasAccount ? (
-                                    <span className="inline-flex items-center gap-1 rounded-full bg-green-50 px-2 py-0.5 text-[10px] font-bold text-green-600 dark:bg-green-500/10 dark:text-green-400">
-                                        <HiOutlineCheck size={10}/> Compte Actif
-                                    </span>
-                                ) : (
-                                    <span className="inline-flex items-center gap-1 rounded-full bg-gray-100 px-2 py-0.5 text-[10px] font-bold text-gray-500 dark:bg-gray-800 dark:text-gray-400">
-                                        Sans compte
-                                    </span>
+                            {/* ── Actions hover (coin haut droit) ── */}
+                            <div className="absolute top-3 right-3 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity z-20">
+                                <button onClick={() => { setViewing(c); setShowViewModal(true); }}
+                                    className="p-1.5 rounded-lg bg-gray-100 dark:bg-gray-800 text-gray-500 hover:text-blue-500 transition-colors">
+                                    <HiOutlineEye size={15} />
+                                </button>
+                                {canEdit && (
+                                    <button onClick={() => openEdit(c)}
+                                        className="p-1.5 rounded-lg bg-gray-100 dark:bg-gray-800 text-gray-500 hover:text-brand-500 transition-colors">
+                                        <HiOutlinePencil size={15} />
+                                    </button>
                                 )}
-                                
-                                {c.fileName && (
-                                    <button onClick={() => openFile(c)} className="text-brand-500 hover:text-brand-600 transition-colors" title="Télécharger le fichier">
-                                        <HiOutlineDocumentText size={18} />
+                                {canDelete && (
+                                    <button onClick={() => handleDelete(c.id)}
+                                        className="p-1.5 rounded-lg bg-gray-100 dark:bg-gray-800 text-gray-500 hover:text-red-500 transition-colors">
+                                        <HiOutlineTrash size={15} />
                                     </button>
                                 )}
                             </div>
-                        </div>
-                    )})}
+                        </motion.div>
+                        );
+                    })}
                 </div>
             )}
 
             {/* ── Create / Edit Modal ─────────────────────────────────────────── */}
-            <Modal isOpen={showModal} onClose={closeModal} title={editing ? 'Modifier le client' : 'Nouveau client'} size="lg">
+            <Modal isOpen={showModal} onClose={closeModal} title={editing ? 'Modifier le client' : 'Nouveau client'} size="lg"
+                footer={<>
+                    <div className="flex gap-2 mr-auto">
+                        {activeSection !== 'info' && (
+                            <Button variant="outline" size="sm" onClick={() => setActiveSection(activeSection === 'account' ? 'contact' : 'info')}>
+                                ← Précédent
+                            </Button>
+                        )}
+                        {activeSection !== 'account' && (
+                            <Button variant="outline" size="sm" onClick={() => setActiveSection(activeSection === 'info' ? 'contact' : 'account')}>
+                                Suivant →
+                            </Button>
+                        )}
+                    </div>
+                    <Button variant="outline" onClick={closeModal} disabled={saving}>Annuler</Button>
+                    <Button onClick={handleSave} disabled={saving}>
+                        {saving ? 'Enregistrement...' : (editing ? 'Modifier' : 'Créer')}
+                    </Button>
+                </>}
+            >
                 <div className="space-y-4 p-1">
                     {error && (
                         <div className="rounded-lg bg-error-50 px-4 py-3 text-theme-sm text-error-700 dark:bg-error-500/10 dark:text-error-400">
@@ -612,27 +681,7 @@ const ClientsPage: React.FC = () => {
                     )}
 
                     {/* Boutons */}
-                    <div className="flex justify-between gap-3 pt-2 border-t border-gray-100 dark:border-gray-800">
-                        <div className="flex gap-2">
-                            {activeSection !== 'info' && (
-                                <Button variant="outline" size="sm" onClick={() => setActiveSection(activeSection === 'account' ? 'contact' : 'info')}>
-                                    ← Précédent
-                                </Button>
-                            )}
-                            {activeSection !== 'account' && (
-                                <Button variant="outline" size="sm" onClick={() => setActiveSection(activeSection === 'info' ? 'contact' : 'account')}>
-                                    Suivant →
-                                </Button>
-                            )}
-                        </div>
-                        <div className="flex gap-3">
-                            <Button variant="outline" onClick={closeModal} disabled={saving}>Annuler</Button>
-                            <Button onClick={handleSave} disabled={saving}>
-                                {saving ? 'Enregistrement...' : (editing ? 'Modifier' : 'Créer')}
-                            </Button>
-                        </div>
                     </div>
-                </div>
             </Modal>
 
             {/* ── Modal Credentials (comme employés) ─────────────────────────── */}
@@ -687,12 +736,37 @@ const ClientsPage: React.FC = () => {
 
             {/* ── Modal Détail ────────────────────────────────────────────────── */}
             {viewing && (
-                <Modal isOpen={showViewModal} onClose={() => setShowViewModal(false)} title="Détails du client">
+                <Modal isOpen={showViewModal} onClose={() => setShowViewModal(false)} title="Détails du client"
+                    footer={<>
+                        {canEdit && (
+                            <Button size="sm" variant="outline" onClick={() => { setShowViewModal(false); openEdit(viewing); }}>
+                                <HiOutlinePencil size={14} className="mr-1"/> Modifier
+                            </Button>
+                        )}
+                        <Button size="sm" onClick={() => setShowViewModal(false)}>Fermer</Button>
+                    </>}
+                >
                     <div className="space-y-5 p-1">
                         {/* En-tête */}
-                        <div className="flex items-center gap-4 p-4 rounded-xl bg-gray-50 dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700">
-                            <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-brand-500 text-white font-bold text-xl shadow">
-                                {viewing.nom.charAt(0).toUpperCase()}
+                        <div className="flex items-center gap-4 p-4 rounded-xl bg-gray-50 dark:bg-gray-800/50">
+                            <div className={`relative flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl text-white font-bold text-xl overflow-hidden ${viewing.logoUrl ? 'bg-transparent' : 'bg-brand-500 shadow'}`}>
+                                {viewing.logoUrl
+                                    ? <img
+                                        src={`${window.location.hostname === 'localhost' ? 'http://localhost:8080' : 'https://rh-antigone.onrender.com'}${viewing.logoUrl}?t=${imgTs}`}
+                                        alt=""
+                                        className="w-full h-full object-contain"
+                                        onError={(e) => {
+                                            e.currentTarget.style.display = 'none';
+                                            const parent = e.currentTarget.parentElement;
+                                            if (parent) {
+                                                parent.classList.remove('bg-transparent');
+                                                parent.classList.add('bg-brand-500','shadow');
+                                                parent.textContent = viewing!.nom.charAt(0).toUpperCase();
+                                            }
+                                        }}
+                                      />
+                                    : viewing.nom.charAt(0).toUpperCase()
+                                }
                             </div>
                             <div>
                                 <h2 className="text-lg font-bold text-gray-800 dark:text-white">{viewing.nom}</h2>
@@ -764,14 +838,6 @@ const ClientsPage: React.FC = () => {
                             </Section>
                         )}
 
-                        <div className="flex justify-end gap-3 pt-2 border-t border-gray-100 dark:border-gray-800">
-                            {canEdit && (
-                                <Button size="sm" variant="outline" onClick={() => { setShowViewModal(false); openEdit(viewing); }}>
-                                    <HiOutlinePencil size={14} className="mr-1"/> Modifier
-                                </Button>
-                            )}
-                            <Button size="sm" onClick={() => setShowViewModal(false)}>Fermer</Button>
-                        </div>
                     </div>
                 </Modal>
             )}

@@ -129,7 +129,9 @@ public class AgentController {
     @GetMapping("/status/{employeId}")
     public ResponseEntity<ApiResponse<Map<String, Boolean>>> getAgentStatus(@PathVariable Long employeId) {
         Heartbeat last = heartbeatRepository.findLastByEmployeId(employeId);
-        boolean active = last != null && last.getTimestamp().isAfter(LocalDateTime.now().minusMinutes(5));
+        // L'agent est considéré installé s'il a envoyé un heartbeat dans les 30
+        // derniers jours
+        boolean active = last != null && last.getTimestamp().isAfter(LocalDateTime.now().minusDays(30));
         return ResponseEntity.ok(ApiResponse.ok(Map.of("active", active)));
     }
 

@@ -7,6 +7,9 @@ const authEvents = new EventEmitter();
 let reloginInProgress = null;
 
 // Tentative de reconnexion silencieuse avec les credentials sauvegardés
+// Retourne { ok: true } si succès
+// Retourne { ok: false, isNetworkError: true } si le serveur est injoignable
+// Retourne { ok: false, isNetworkError: false } si les credentials sont refusés par le serveur
 async function silentRelogin() {
   if (reloginInProgress) return reloginInProgress;
   reloginInProgress = (async () => {
@@ -14,7 +17,7 @@ async function silentRelogin() {
       const creds = config.getCredentials();
       if (!creds) {
         console.warn('[API] Aucun credential sauvegardé, reconnexion automatique impossible');
-        return false;
+        return { ok: false, isNetworkError: false };
       }
       console.log('[API] Token expiré — tentative de reconnexion silencieuse...');
       const serverUrl = config.get('serverUrl');
@@ -23,7 +26,9 @@ async function silentRelogin() {
         password: creds.password
       }, { timeout: 10000 });
       const apiResponse = response.data;
-      if (!apiResponse.success || !apiResponse.data?.token) return false;
+      if (!apiResponse.success || !apiResponse.data?.token) {
+        return { ok: false, isNetworkError: false };
+      }
       const loginData = apiResponse.data;
       config.set('token', loginData.token);
       config.set('isLoggedIn', true);
@@ -31,10 +36,16 @@ async function silentRelogin() {
       config.set('nom', loginData.nom);
       config.set('prenom', loginData.prenom);
       console.log('[API] Reconnexion silencieuse réussie');
-      return true;
+      return { ok: true, isNetworkError: false };
     } catch (err) {
-      console.error('[API] Reconnexion silencieuse échouée:', err.message);
-      return false;
+      // Distinguer erreur réseau (serveur down) vs rejet credentials (serveur répond mais refuse)
+      const isNetworkError = !err.response || err.code === 'ECONNREFUSED' || err.code === 'ECONNRESET' || err.code === 'ETIMEDOUT' || err.code === 'ENOTFOUND';
+      if (isNetworkError) {
+        console.warn('[API] Reconnexion silencieuse impossible — serveur injoignable:', err.message);
+      } else {
+        console.error('[API] Reconnexion silencieuse refusée par le serveur:', err.message);
+      }
+      return { ok: false, isNetworkError };
     } finally {
       reloginInProgress = null;
     }
@@ -62,12 +73,19 @@ function getClient() {
       const status = error?.response?.status;
       if ((status === 401 || status === 403) && !error.config._retried) {
         error.config._retried = true;
-        const ok = await silentRelogin();
-        if (ok) {
+        const result = await silentRelogin();
+        if (result.ok) {
           error.config.headers['Authorization'] = `Bearer ${config.get('token')}`;
           return axios(error.config);
         }
-        // Re-login échoué : nettoyer la session et notifier le processus principal
+        if (result.isNetworkError) {
+          // Serveur temporairement injoignable — ne pas effacer la session.
+          // Marquer comme géré pour que handleAuthFailure ne supprime pas la session.
+          error._handled = true;
+          console.warn('[API] Reconnexion différée — serveur injoignable, session conservée');
+          return Promise.reject(error);
+        }
+        // Le serveur a explicitement refusé les credentials : effacer la session
         config.clearSession();
         authEvents.emit('session-expired');
         error._handled = true;

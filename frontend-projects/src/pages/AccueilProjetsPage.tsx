@@ -1,4 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
+import AnniversaireModal from '../components/ui/AnniversaireModal';
+import { employeService } from '../api/employeService';
 import {
   HiOutlineBriefcase,
   HiOutlineCalendar,
@@ -171,6 +173,7 @@ const AccueilProjetsPage: React.FC = () => {
   const [taches, setTaches] = useState<TacheDetail[]>([]);
   const [notifications, setNotifications] = useState<NotificationResponse[]>([]);
   const [loading, setLoading] = useState(true);
+  const [anniversaire, setAnniversaire] = useState<{ annees: number } | null>(null);
 
   const displayName = user?.prenom?.trim() || 'System Admin';
   const heroDateText = useMemo(() => `${formatHeroDate(new Date())} · Antigone`, []);
@@ -224,6 +227,30 @@ const AccueilProjetsPage: React.FC = () => {
     };
 
     fetchAccueilData();
+  }, [employeId]);
+
+  /* ── Détection anniversaire d'embauche ── */
+  useEffect(() => {
+    if (!employeId) return;
+    const sessionKey = `anniversaire_shown_${new Date().getFullYear()}_${employeId}`;
+    if (sessionStorage.getItem(sessionKey)) return;
+    employeService.getById(employeId)
+      .then(res => {
+        const employe = res.data.data;
+        if (!employe?.dateEmbauche) return;
+        const embauche = new Date(employe.dateEmbauche);
+        const today = new Date();
+        const anneesEcoules = today.getFullYear() - embauche.getFullYear();
+        const isAnniversaire =
+          anneesEcoules >= 1 &&
+          embauche.getMonth() === today.getMonth() &&
+          embauche.getDate() === today.getDate();
+        if (isAnniversaire) {
+          sessionStorage.setItem(sessionKey, '1');
+          setAnniversaire({ annees: anneesEcoules });
+        }
+      })
+      .catch(() => { /* silencieux */ });
   }, [employeId]);
 
   const shortcuts = useMemo(
@@ -596,6 +623,14 @@ const AccueilProjetsPage: React.FC = () => {
           animation: fadeUp 0.6s ease-out forwards;
         }
       `}</style>
+
+      {anniversaire && (
+        <AnniversaireModal
+          prenom={displayName}
+          annees={anniversaire.annees}
+          onClose={() => setAnniversaire(null)}
+        />
+      )}
     </div>
   );
 };

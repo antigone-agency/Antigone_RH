@@ -4,6 +4,27 @@
 
 @custom-variant dark (&:is(.dark *));
 
+/* View Transition pour l'animation de changement de thème */
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation: none;
+  mix-blend-mode: normal;
+}
+::view-transition-old(root) {
+  z-index: 1;
+}
+::view-transition-new(root) {
+  z-index: 9999;
+}
+
+/* Hide browser native password reveal button (Edge/Chrome) */
+input[type="password"]::-ms-reveal,
+input[type="password"]::-ms-clear,
+input::-webkit-contacts-auto-fill-button,
+input::-webkit-credentials-auto-fill-button {
+  display: none !important;
+}
+
 :root {
   --bg: #f5f4f1;
   --surface: #ffffff;
@@ -23,6 +44,16 @@
   --font: var(--app-font);
   --transition: all 0.22s cubic-bezier(0.4, 0, 0.2, 1);
   --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.08);
+}
+
+/* ── Dark mode CSS variable overrides ── */
+.dark {
+  --bg: #111827;
+  --surface: #1f2937;
+  --text-1: #f9fafb;
+  --text-2: #9ca3af;
+  --text-3: #6b7280;
+  --border: #374151;
 }
 
 @theme {

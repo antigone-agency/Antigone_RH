@@ -271,8 +271,16 @@ const HistoriqueAgentPage: React.FC = () => {
     totalInactifMin: historique.jours.reduce((s, j) => s + (j.tempsInactifMinutes || 0), 0),
   } : null;
 
+  const isWeekend = (dateStr: string) => {
+    const d = new Date(dateStr + 'T00:00:00');
+    const day = d.getDay();
+    return day === 0 || day === 6; // 0 = dimanche, 6 = samedi
+  };
+
   const filteredJours = useMemo(() => {
-    const jours = historique?.jours || [];
+    const jours = (historique?.jours || []).filter(
+      (jour) => !isWeekend(jour.date) && jour.statut !== 'JOUR_FERIE'
+    );
     if (!filterStatut) return jours;
     return jours.filter((jour) => jour.statut === filterStatut);
   }, [historique, filterStatut]);

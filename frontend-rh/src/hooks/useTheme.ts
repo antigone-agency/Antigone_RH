@@ -1,7 +1,8 @@
 import React, { createContext, useContext, useState, useEffect, useCallback, ReactNode } from 'react';
 
 type Theme = 'light' | 'dark';
-export type AppFont = 'Inter' | 'Roboto' | 'Outfit' | 'Poppins' | 'Plus Jakarta Sans';
+export type AppFont = 'Inter' | 'Poppins';
+export type AppFontSize = '13px' | '14px' | '15px' | '16px';
 
 interface ThemeContextType {
   theme: Theme;
@@ -9,21 +10,44 @@ interface ThemeContextType {
   setTheme: (theme: Theme) => void;
   font: AppFont;
   setFont: (font: AppFont) => void;
+  fontSize: AppFontSize;
+  setFontSize: (size: AppFontSize) => void;
 }
+
+// Cookies partagés entre tous les ports du même domaine (contrairement à localStorage)
+export const getSharedCookie = (name: string): string | null => {
+  const match = document.cookie.match(new RegExp('(^| )' + name + '=([^;]+)'));
+  return match ? decodeURIComponent(match[2]) : null;
+};
+
+export const setSharedCookie = (name: string, value: string) => {
+  const expires = new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toUTCString();
+  document.cookie = `${name}=${encodeURIComponent(value)};expires=${expires};path=/;SameSite=Lax`;
+};
+
+const VALID_FONTS: AppFont[] = ['Inter', 'Poppins'];
+const VALID_SIZES: AppFontSize[] = ['13px', '14px', '15px', '16px'];
 
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
 export const ThemeProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [theme, setThemeState] = useState<Theme>(() => {
-    const stored = localStorage.getItem('theme') as Theme | null;
-    if (stored) return stored;
+    // Priorité : cookie (partagé entre ports) > localStorage > préférence système
+    const stored = (getSharedCookie('theme') || localStorage.getItem('theme')) as Theme | null;
+    if (stored === 'dark' || stored === 'light') return stored;
     return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
   });
 
   const [font, setFontState] = useState<AppFont>(() => {
-    const stored = localStorage.getItem('app-font') as AppFont | null;
-    if (stored) return stored;
-    return 'Inter'; // Default font
+    const stored = (getSharedCookie('app-font') || localStorage.getItem('app-font')) as AppFont | null;
+    if (stored && VALID_FONTS.includes(stored as AppFont)) return stored as AppFont;
+    return 'Inter';
+  });
+
+  const [fontSize, setFontSizeState] = useState<AppFontSize>(() => {
+    const stored = (getSharedCookie('app-font-size') || localStorage.getItem('app-font-size')) as AppFontSize | null;
+    if (stored && VALID_SIZES.includes(stored as AppFontSize)) return stored as AppFontSize;
+    return '14px';
   });
 
   useEffect(() => {
@@ -34,13 +58,44 @@ export const ThemeProvider: React.FC<{ children: ReactNode }> = ({ children }) =
       root.classList.remove('dark');
     }
     localStorage.setItem('theme', theme);
+    setSharedCookie('theme', theme);
   }, [theme]);
 
   useEffect(() => {
     const root = document.documentElement;
     root.style.setProperty('--app-font', `"${font}", sans-serif`);
     localStorage.setItem('app-font', font);
+    setSharedCookie('app-font', font);
   }, [font]);
+
+  useEffect(() => {
+    const root = document.documentElement;
+    root.style.setProperty('--app-font-size', fontSize);
+    root.style.fontSize = fontSize;
+    localStorage.setItem('app-font-size', fontSize);
+    setSharedCookie('app-font-size', fontSize);
+  }, [fontSize]);
+
+  // Re-sync depuis le cookie quand l'onglet redevient visible (ex: retour depuis l'autre app)
+  useEffect(() => {
+    const handleVisibility = () => {
+      if (document.visibilityState !== 'visible') return;
+      const newTheme = (getSharedCookie('theme') || localStorage.getItem('theme')) as Theme | null;
+      if (newTheme === 'dark' || newTheme === 'light') {
+        setThemeState(newTheme);
+      }
+      const newFont = (getSharedCookie('app-font') || localStorage.getItem('app-font')) as AppFont | null;
+      if (newFont && VALID_FONTS.includes(newFont as AppFont)) {
+        setFontState(newFont as AppFont);
+      }
+      const newSize = (getSharedCookie('app-font-size') || localStorage.getItem('app-font-size')) as AppFontSize | null;
+      if (newSize && VALID_SIZES.includes(newSize as AppFontSize)) {
+        setFontSizeState(newSize as AppFontSize);
+      }
+    };
+    document.addEventListener('visibilitychange', handleVisibility);
+    return () => document.removeEventListener('visibilitychange', handleVisibility);
+  }, []);
 
   const toggleTheme = useCallback(() => {
     setThemeState((prev) => (prev === 'light' ? 'dark' : 'light'));
@@ -54,8 +109,12 @@ export const ThemeProvider: React.FC<{ children: ReactNode }> = ({ children }) =
     setFontState(newFont);
   }, []);
 
+  const setFontSize = useCallback((newSize: AppFontSize) => {
+    setFontSizeState(newSize);
+  }, []);
+
   return React.createElement(ThemeContext.Provider, {
-    value: { theme, toggleTheme, setTheme, font, setFont },
+    value: { theme, toggleTheme, setTheme, font, setFont, fontSize, setFontSize },
     children,
   });
 };

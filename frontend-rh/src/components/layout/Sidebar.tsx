@@ -1,4 +1,6 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { flushSync } from 'react-dom';
+import { motion, AnimatePresence } from 'framer-motion';
 import { NavLink, useLocation, useNavigate } from 'react-router-dom';
 import {
   HiChevronLeft,
@@ -38,7 +40,7 @@ import { demandeService } from '../../api/demandeService';
 import { agentDashboardService } from '../../api/agentDashboardService';
 import { useSidebar } from '../../hooks/useSidebar';
 import { useAuth } from '../../context/AuthContext';
-import { useTheme, AppFont } from '../../hooks/useTheme';
+import { useTheme, AppFont, AppFontSize, setSharedCookie } from '../../hooks/useTheme';
 import { NotificationResponse } from '../../types';
 import './SidebarCanva.css';
 
@@ -227,11 +229,76 @@ const isRailItemActive = (item: RailItemDef, pathname: string) => {
   return prefixes.some((prefix) => pathMatches(pathname, prefix));
 };
 
+// Bouton de thème avec animation View Transition (cercle qui s'expanse)
+const ThemeAnimatedBtn: React.FC<{
+  targetTheme: 'light' | 'dark';
+  current: string;
+  setTheme: (t: 'light' | 'dark') => void;
+  children: React.ReactNode;
+}> = ({ targetTheme, current, setTheme, children }) => {
+  const btnRef = useRef<HTMLButtonElement>(null);
+
+  const handleClick = useCallback(async () => {
+    if (current === targetTheme) return;
+    if (!btnRef.current) return;
+
+    const applyTheme = () => {
+      flushSync(() => {
+        // Manipuler le DOM directement pour que startViewTransition capture le changement
+        document.documentElement.classList.toggle('dark', targetTheme === 'dark');
+        localStorage.setItem('theme', targetTheme);
+        setSharedCookie('theme', targetTheme); // sync cross-port (RH ↔ Projects)
+        setTheme(targetTheme);
+      });
+    };
+
+    if (!document.startViewTransition) {
+      applyTheme();
+      return;
+    }
+
+    await document.startViewTransition(applyTheme).ready;
+
+    const { left, top, width, height } = btnRef.current.getBoundingClientRect();
+    const centerX = left + width / 2;
+    const centerY = top + height / 2;
+    const maxDistance = Math.hypot(
+      Math.max(centerX, window.innerWidth - centerX),
+      Math.max(centerY, window.innerHeight - centerY)
+    );
+
+    document.documentElement.animate(
+      {
+        clipPath: [
+          `circle(0px at ${centerX}px ${centerY}px)`,
+          `circle(${maxDistance}px at ${centerX}px ${centerY}px)`,
+        ],
+      },
+      {
+        duration: 700,
+        easing: 'ease-in-out',
+        pseudoElement: '::view-transition-new(root)',
+      }
+    );
+  }, [current, targetTheme, setTheme]);
+
+  return (
+    <button
+      ref={btnRef}
+      onClick={handleClick}
+      className={`pc-account-popup-theme-btn ${current === targetTheme ? 'active' : ''}`}
+      title={targetTheme === 'light' ? 'Mode clair' : 'Mode sombre'}
+    >
+      {children}
+    </button>
+  );
+};
+
 const Sidebar: React.FC = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const { user, logout } = useAuth();
-  const { theme, toggleTheme, setTheme, font, setFont } = useTheme();
+  const { theme, toggleTheme, setTheme, font, setFont, fontSize, setFontSize } = useTheme();
   const {
     isExpanded,
     isMobileOpen,
@@ -282,7 +349,9 @@ const Sidebar: React.FC = () => {
         const res = await agentDashboardService.checkAgentActive(user.employeId);
         setAgentActive(res.data.data.active);
       } catch {
-        setAgentActive(false);
+        // Si le backend est inaccessible, on ne sait pas si l'agent est installé
+        // → on garde agentActive=true pour ne pas afficher inutilement le bouton d'installation
+        setAgentActive(true);
       }
     };
     checkAgent();
@@ -717,39 +786,64 @@ const Sidebar: React.FC = () => {
               <div className="pc-account-popup-section-label">Theme</div>
 
               <div className="pc-account-popup-theme-options">
-                <button
-                  onClick={() => setTheme('light')}
-                  className={`pc-account-popup-theme-btn ${theme === 'light' ? 'active' : ''}`}
-                  title="Mode clair"
-                >
-                  <HiOutlineSun size={18} />
-                  <span>Leger</span>
-                </button>
-                <button
-                  onClick={() => setTheme('dark')}
-                  className={`pc-account-popup-theme-btn ${theme === 'dark' ? 'active' : ''}`}
-                  title="Mode sombre"
-                >
-                  <HiOutlineMoon size={18} />
-                  <span>Sombre</span>
-                </button>
+                <ThemeAnimatedBtn targetTheme={theme === 'dark' ? 'light' : 'dark'} current={theme} setTheme={setTheme}>
+                  {theme === 'dark' ? <HiOutlineSun size={18} /> : <HiOutlineMoon size={18} />}
+                  <span>{theme === 'dark' ? 'Léger' : 'Sombre'}</span>
+                </ThemeAnimatedBtn>
               </div>
 
               <div className="pc-account-popup-divider" />
 
               <div className="pc-account-popup-section-label">Police d'écriture</div>
               <div className="pc-account-popup-theme-options" style={{ flexWrap: 'wrap', gap: '8px', padding: '8px 12px' }}>
-                {(['Inter', 'Roboto', 'Outfit', 'Poppins', 'Plus Jakarta Sans'] as AppFont[]).map(f => (
+                {(['Inter', 'Poppins'] as AppFont[]).map(f => (
                   <button
                     key={f}
                     onClick={() => setFont(f)}
                     className={`pc-account-popup-theme-btn ${font === f ? 'active' : ''}`}
                     title={f}
-                    style={{ fontFamily: f, fontSize: '11px', padding: '4px 8px', height: 'auto', minHeight: 'unset' }}
+                    style={{ fontFamily: f, fontSize: '11px', padding: '4px 12px', height: 'auto', minHeight: 'unset' }}
                   >
-                    {f.split(' ')[0]}
+                    {f}
                   </button>
                 ))}
+              </div>
+
+              <div className="pc-account-popup-section-label" style={{ marginTop: '4px' }}>Taille du texte</div>
+              <div style={{ padding: '4px 12px 10px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <span style={{ fontSize: '10px', color: 'var(--text-3)', minWidth: '16px' }}>A</span>
+                  <input
+                    type="range"
+                    min={0}
+                    max={3}
+                    value={(['13px', '14px', '15px', '16px'] as AppFontSize[]).indexOf(fontSize)}
+                    onChange={e => setFontSize((['13px', '14px', '15px', '16px'] as AppFontSize[])[Number(e.target.value)])}
+                    style={{ flex: 1, accentColor: 'var(--brand)', cursor: 'pointer', height: '4px' }}
+                  />
+                  <span style={{ fontSize: '14px', color: 'var(--text-3)', minWidth: '16px', textAlign: 'right' }}>A</span>
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '4px' }}>
+                  {(['13px', '14px', '15px', '16px'] as AppFontSize[]).map(s => (
+                    <button
+                      key={s}
+                      onClick={() => setFontSize(s)}
+                      style={{
+                        fontSize: '10px',
+                        padding: '2px 6px',
+                        borderRadius: '6px',
+                        border: fontSize === s ? '1px solid var(--brand)' : '1px solid transparent',
+                        background: fontSize === s ? 'var(--brand-light)' : 'transparent',
+                        color: fontSize === s ? 'var(--brand)' : 'var(--text-3)',
+                        cursor: 'pointer',
+                        fontWeight: fontSize === s ? 600 : 400,
+                        transition: 'all 0.15s',
+                      }}
+                    >
+                      {s}
+                    </button>
+                  ))}
+                </div>
               </div>
 
               <div className="pc-account-popup-divider" />
@@ -785,11 +879,7 @@ const Sidebar: React.FC = () => {
         <header className="pc-secondary-header">
           <div>
             <p className="pc-secondary-title">{panelTitle}</p>
-            <p className="pc-secondary-subtitle">Module RH</p>
           </div>
-          <button type="button" className="pc-close-btn" onClick={closeAllPanels} aria-label="Fermer">
-            <HiX size={18} />
-          </button>
         </header>
 
         <div className="pc-secondary-content custom-scrollbar">
@@ -849,7 +939,6 @@ const PanelItem: React.FC<{
             event.stopPropagation();
             setOpenSubmenu(isOpen ? null : item.key);
             navigate(item.path);
-            onNavigate();
           }}
           className={`pc-panel-item ${active || childActive ? 'is-active' : ''}`}
         >

@@ -227,7 +227,7 @@ public class AgentService {
             String ssidConnecte = lastHb != null ? lastHb.getSsid() : null;
             boolean surReseau = lastHb != null && Boolean.TRUE.equals(lastHb.getSurReseauEntreprise());
 
-            String statut = "ABSENT";
+            String statut;
             String heureEntree = null;
             String heureSortie = null;
             int retardMinutes = 0;
@@ -237,6 +237,20 @@ public class AgentService {
                 heureEntree = pointage.getHeureEntree() != null ? pointage.getHeureEntree().toString() : null;
                 heureSortie = pointage.getHeureSortie() != null ? pointage.getHeureSortie().toString() : null;
                 retardMinutes = pointage.getRetardMinutes() != null ? pointage.getRetardMinutes() : 0;
+            } else {
+                // Pas de pointage : déterminer la situation réelle de l'employé
+                HoraireTravail horaire = getHoraireForEmploye(emp.getId());
+                if (isJourFerie(today)) {
+                    statut = "JOUR_FERIE";
+                } else if (horaire != null && !isJourTravail(horaire, today)) {
+                    statut = "JOUR_NON_TRAVAILLE";
+                } else if (isEnConge(emp.getId(), today)) {
+                    statut = "EN_CONGE";
+                } else if (isEnTeletravail(emp.getId(), today, horaire)) {
+                    statut = "TELETRAVAIL";
+                } else {
+                    statut = "ABSENT";
+                }
             }
 
             // Score journalier
@@ -423,6 +437,23 @@ public class AgentService {
     // ========================================
     // HISTORIQUE PAR EMPLOYÉ
     // ========================================
+
+    /**
+     * Vérifie si un jour est un jour ouvré pour un employé donné.
+     * Retourne false si : jour férié, jour non travaillé (horaire), ou en congé
+     * approuvé.
+     */
+    public boolean isJourOuvrePourEmploye(Long employeId, LocalDate date) {
+        if (isJourFerie(date))
+            return false;
+        HoraireTravail horaire = getHoraireForEmploye(employeId);
+        if (horaire != null && !isJourTravail(horaire, date))
+            return false;
+        if (isEnConge(employeId, date))
+            return false;
+        return true;
+    }
+
     @Transactional(readOnly = true)
     public HistoriqueEmployeDTO getHistorique(Long employeId, LocalDate debut, LocalDate fin) {
         Employe employe = employeRepository.findById(employeId)
@@ -442,7 +473,7 @@ public class AgentService {
             long actif = heartbeatRepository.countActiveMinutes(employeId, startOfDay, endOfDay);
             long inactif = heartbeatRepository.countInactiveMinutes(employeId, startOfDay, endOfDay);
 
-            String statut = "ABSENT";
+            String statut;
             String heureEntree = null;
             String heureSortie = null;
             int retard = 0;
@@ -458,6 +489,20 @@ public class AgentService {
                 ssid = pointage.getSsidEntree();
                 surReseau = pointage.getSurReseauEntreprise();
                 teletravail = pointage.getTeletravail();
+            } else {
+                // Pas de pointage : déterminer la situation réelle pour ce jour
+                HoraireTravail horaire = getHoraireForEmploye(employeId);
+                if (isJourFerie(date)) {
+                    statut = "JOUR_FERIE";
+                } else if (horaire != null && !isJourTravail(horaire, date)) {
+                    statut = "JOUR_NON_TRAVAILLE";
+                } else if (isEnConge(employeId, date)) {
+                    statut = "EN_CONGE";
+                } else if (isEnTeletravail(employeId, date, horaire)) {
+                    statut = "TELETRAVAIL";
+                } else {
+                    statut = "ABSENT";
+                }
             }
 
             jours.add(HistoriqueEmployeDTO.JourDetailDTO.builder()

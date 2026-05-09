@@ -37,7 +37,8 @@ public class RapportInactiviteService {
     }
 
     /**
-     * Générer les rapports depuis la dernière décision jusqu'à aujourd'hui pour chaque employé
+     * Générer les rapports depuis la dernière décision jusqu'à aujourd'hui pour
+     * chaque employé
      */
     public List<RapportInactiviteDTO> genererSemaineCourante() {
         LocalDate today = LocalDate.now();
@@ -46,7 +47,8 @@ public class RapportInactiviteService {
 
         for (Employe employe : employes) {
             LocalDate debut = getDateApresDerniereDecision(employe.getId());
-            if (debut.isAfter(today)) continue;
+            if (debut.isAfter(today))
+                continue;
             generated.addAll(genererRapports(debut, today));
         }
 
@@ -62,7 +64,8 @@ public class RapportInactiviteService {
         if (!lastDecided.isEmpty()) {
             return lastDecided.get(0).getSemaineFin().plusDays(1);
         }
-        // Pas de décision précédente : prendre la date d'embauche ou 30 jours en arrière
+        // Pas de décision précédente : prendre la date d'embauche ou 30 jours en
+        // arrière
         Employe employe = employeRepository.findById(employeId).orElse(null);
         if (employe != null && employe.getDateEmbauche() != null) {
             return employe.getDateEmbauche();
@@ -115,22 +118,20 @@ public class RapportInactiviteService {
                 continue; // Déjà généré
             }
 
-            // Compter les minutes d'inactivité sur la période
-            LocalDateTime start = periodeDebut.atStartOfDay();
-            LocalDateTime end = periodeFin.atTime(23, 59, 59);
+            // Compter les minutes d'inactivité uniquement sur les jours ouvrés
+            long inactiveMinutes = countInactiveMinutesForWorkingDays(employe.getId(), periodeDebut, periodeFin);
 
-            long inactiveMinutes = heartbeatRepository.countInactiveMinutes(
-                    employe.getId(), start, end);
-
-            // Calculer le retard cumulé sur la période
+            // Calculer le retard cumulé : exclure les jours congé/férié/non-travaillé
             List<Pointage> pointages = pointageRepository.findByEmployeIdAndDatePointageBetween(
                     employe.getId(), periodeDebut, periodeFin);
             int retardCumule = pointages.stream()
+                    .filter(p -> isStatutAvecRetard(p.getStatut()))
                     .mapToInt(p -> p.getRetardMinutes() != null ? p.getRetardMinutes() : 0)
                     .sum();
 
             // Si aucun retard et aucune inactivité, pas besoin de rapport
-            if (retardCumule == 0 && inactiveMinutes == 0) continue;
+            if (retardCumule == 0 && inactiveMinutes == 0)
+                continue;
 
             // Tolérance = 0 (chaque minute compte)
             int toleranceMinutes = 0;
@@ -159,6 +160,33 @@ public class RapportInactiviteService {
         return generated;
     }
 
+    /**
+     * Compte les minutes d'inactivité uniquement sur les jours ouvrés (hors congés,
+     * jours fériés, jours non travaillés).
+     */
+    private long countInactiveMinutesForWorkingDays(Long employeId, LocalDate debut, LocalDate fin) {
+        long total = 0;
+        for (LocalDate date = debut; !date.isAfter(fin); date = date.plusDays(1)) {
+            if (!agentService.isJourOuvrePourEmploye(employeId, date))
+                continue;
+            LocalDateTime startOfDay = date.atStartOfDay();
+            LocalDateTime endOfDay = date.atTime(23, 59, 59);
+            total += heartbeatRepository.countInactiveMinutes(employeId, startOfDay, endOfDay);
+        }
+        return total;
+    }
+
+    /**
+     * Vérifie si un statut de pointage doit être pris en compte dans le calcul du
+     * retard.
+     * Les congés, jours fériés et jours non travaillés sont exclus.
+     */
+    private boolean isStatutAvecRetard(String statut) {
+        if (statut == null)
+            return false;
+        return "PRESENT".equals(statut) || "RETARD".equals(statut) || "TELETRAVAIL".equals(statut);
+    }
+
     // ========================================
     // MAPPING
     // ========================================
@@ -172,17 +200,18 @@ public class RapportInactiviteService {
 
         // Pour les rapports EN_ATTENTE, recalculer dynamiquement depuis la base
         if ("EN_ATTENTE".equals(r.getDecision())) {
-            LocalDateTime start = r.getSemaineDebut().atStartOfDay();
-            LocalDateTime end = r.getSemaineFin().atTime(23, 59, 59);
             Long employeId = r.getEmploye().getId();
+            LocalDate semaineDebut = r.getSemaineDebut();
+            LocalDate semaineFin = r.getSemaineFin();
 
-            long inactiveMinutesLive = heartbeatRepository.countInactiveMinutes(employeId, start, end);
+            long inactiveMinutesLive = countInactiveMinutesForWorkingDays(employeId, semaineDebut, semaineFin);
             totalInactiviteMinutes = (int) inactiveMinutesLive;
             inactiviteExcedentaire = (int) Math.max(0, inactiveMinutesLive - toleranceMinutes);
 
             List<Pointage> pointages = pointageRepository.findByEmployeIdAndDatePointageBetween(
-                    employeId, r.getSemaineDebut(), r.getSemaineFin());
+                    employeId, semaineDebut, semaineFin);
             retardCumule = pointages.stream()
+                    .filter(p -> isStatutAvecRetard(p.getStatut()))
                     .mapToInt(p -> p.getRetardMinutes() != null ? p.getRetardMinutes() : 0)
                     .sum();
 

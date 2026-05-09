@@ -3,6 +3,7 @@ package com.antigone.rh.repository;
 import com.antigone.rh.entity.Projet;
 import com.antigone.rh.enums.StatutProjet;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.stereotype.Repository;
 
 import org.springframework.data.jpa.repository.Query;
@@ -52,4 +53,12 @@ public interface ProjetRepository extends JpaRepository<Projet, Long> {
      * Projects assigned to a specific client (for the client portal).
      */
     List<Projet> findByClientId(Long clientId);
+
+    @Modifying
+    @Query(value = "DELETE FROM projet_membres WHERE employe_id = :employeId", nativeQuery = true)
+    void removeEmployeFromAllProjetsMembers(@Param("employeId") Long employeId);
+
+    @Modifying
+    @Query(value = "DELETE FROM projet_chefs WHERE employe_id = :employeId", nativeQuery = true)
+    void removeEmployeFromAllProjetsChefs(@Param("employeId") Long employeId);
 }

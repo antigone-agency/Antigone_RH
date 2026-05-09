@@ -92,12 +92,21 @@ app.whenReady().then(() => {
       console.log('[Agent] Config refresh échoué (utilisation du cache):', err.message);
     }).finally(() => {
       if (config.isLoggedIn()) {
+        // Session toujours valide (token non expiré ou reconnexion silencieuse réussie)
         startServices();
         trayManager.updateMenu();
         trayManager.setStatus('Connecté');
+      } else if (config.getCredentials()) {
+        // Session effacée MAIS credentials présents → le serveur était down lors du démarrage.
+        // On démarre les services en mode dégradé : ils réessaieront dès que le serveur reviendra.
+        console.log('[Agent] Serveur indisponible au démarrage — démarrage en mode dégradé avec credentials sauvegardés');
+        // NE PAS restaurer la session ici : les services détecteront eux-mêmes la reprise du serveur
+        // et effectueront la reconnexion silencieuse automatiquement via l'intercepteur.
+        // On démarre quand même pour que le tray soit actif.
+        trayManager.updateMenu();
+        trayManager.setStatus('En attente du serveur...');
       }
-      // Si la session a été effacée (reconnexion silencieuse échouée),
-      // l'événement 'session-expired' a déjà affiché la fenêtre de login
+      // Si session effacée ET aucun credential → l'événement 'session-expired' a déjà affiché le login
     });
   } else {
     showLoginWindow();

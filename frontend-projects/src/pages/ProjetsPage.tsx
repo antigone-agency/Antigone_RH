@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
+import { DatePickerInput } from '../components/ui/DatePickerInput';
 import { useNavigate } from 'react-router-dom';
 import { HiOutlinePlus, HiOutlinePencil, HiOutlineTrash, HiOutlineClipboardList, HiOutlineDocumentText, HiOutlineDownload, HiOutlineChevronDown, HiOutlineArrowLeft, HiOutlineBriefcase, HiOutlineUserGroup, HiOutlineCalendar, HiOutlineOfficeBuilding, HiOutlineSun } from 'react-icons/hi';
 import { projetService } from '../api/projetService';
@@ -1043,13 +1044,21 @@ const ProjetsPage: React.FC = () => {
 
                 {/* Dates */}
                 <div className={`grid gap-3 ${row.typeProjet === 'DETERMINE' ? 'grid-cols-2' : 'grid-cols-1'}`}>
-                  <input type="date" value={row.dateDebut} min={today}
-                    onChange={e => updateRow(idx, { dateDebut: e.target.value })}
-                    className={inputClass} style={{ colorScheme: 'dark' }} />
+                  <DatePickerInput
+                    value={row.dateDebut}
+                    min={today}
+                    onChange={v => updateRow(idx, { dateDebut: v })}
+                    className={inputClass}
+                    placeholder="Date début"
+                  />
                   {row.typeProjet === 'DETERMINE' && (
-                    <input type="date" value={row.dateFin} min={row.dateDebut || today}
-                      onChange={e => updateRow(idx, { dateFin: e.target.value })}
-                      className={inputClass} style={{ colorScheme: 'dark' }} />
+                    <DatePickerInput
+                      value={row.dateFin}
+                      min={row.dateDebut || today}
+                      onChange={v => updateRow(idx, { dateFin: v })}
+                      className={inputClass}
+                      placeholder="Date fin"
+                    />
                   )}
                 </div>
               </div>
@@ -1127,12 +1136,23 @@ const ProjetsPage: React.FC = () => {
           <div className={`grid gap-4 ${editForm.typeProjet === 'DETERMINE' ? 'grid-cols-2' : 'grid-cols-1'}`}>
             <div>
               <label className="mb-1.5 block text-theme-sm font-medium text-gray-700 dark:text-gray-300">Date début</label>
-              <input type="date" value={editForm.dateDebut} onChange={e => { setEditForm(f => ({ ...f, dateDebut: e.target.value })); setEditDateError(null); }} className={inputClass} style={{ colorScheme: 'dark' }} />
+              <DatePickerInput
+                value={editForm.dateDebut}
+                onChange={v => { setEditForm(f => ({ ...f, dateDebut: v })); setEditDateError(null); }}
+                className={inputClass}
+                placeholder="Date début"
+              />
             </div>
             {editForm.typeProjet === 'DETERMINE' && (
               <div>
                 <label className="mb-1.5 block text-theme-sm font-medium text-gray-700 dark:text-gray-300">Date fin</label>
-                <input type="date" value={editForm.dateFin} min={editForm.dateDebut || today} onChange={e => { setEditForm(f => ({ ...f, dateFin: e.target.value })); setEditDateError(null); }} className={inputClass} style={{ colorScheme: 'dark' }} />
+                <DatePickerInput
+                  value={editForm.dateFin}
+                  min={editForm.dateDebut || today}
+                  onChange={v => { setEditForm(f => ({ ...f, dateFin: v })); setEditDateError(null); }}
+                  className={inputClass}
+                  placeholder="Date fin"
+                />
               </div>
             )}
           </div>

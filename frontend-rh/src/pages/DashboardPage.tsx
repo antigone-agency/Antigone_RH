@@ -1,12 +1,8 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import {
-  HiOutlineBell,
   HiOutlineCalendar,
-  HiOutlineCheckCircle,
-  HiOutlineClipboardList,
-  HiOutlineClock,
-  HiOutlineExclamation,
-  HiOutlineFolder,
+  HiOutlineChevronLeft,
+  HiOutlineChevronRight,
   HiOutlineLightningBolt,
   HiOutlineSearch,
 } from 'react-icons/hi';
@@ -116,6 +112,7 @@ const DashboardPage: React.FC = () => {
   const [joursFeries, setJoursFeries] = useState<CalendrierJour[]>([]);
   const [soldeInfo, setSoldeInfo] = useState<SoldeCongeInfo | null>(null);
   const [loading, setLoading] = useState(true);
+  const [calMonth, setCalMonth] = useState<Date>(new Date());
 
   const displayName = user?.prenom?.trim() || 'Utilisateur';
   const heroDateText = useMemo(() => `${formatHeroDate(new Date())} · Espace RH`, []);
@@ -172,20 +169,12 @@ const DashboardPage: React.FC = () => {
   const dans30j = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000);
 
   const demandesEnAttente = demandes.filter((d) => d.statut === StatutDemande.EN_ATTENTE).length;
-  const demandesApprouvees = demandes.filter((d) => d.statut === StatutDemande.APPROUVEE).length;
-  const demandesRefusees = demandes.filter((d) => d.statut === StatutDemande.REFUSEE).length;
-  const papierEnAttente = demandesPapier.filter((d) => d.statut === StatutDemande.EN_ATTENTE).length;
   const notifsNonLues = notifications.filter((n) => !n.lu).length;
-  const validationsEnAttente = validations.filter((v) => v.decision === DecisionValidation.EN_ATTENTE).length;
 
   const tachesOuvertes = taches.filter((t) => t.statut !== StatutTache.DONE);
-  const tachesEnRetard = tachesOuvertes.filter((t) => t.dateEcheance && new Date(t.dateEcheance) < now);
   const docsExpirant = documents.filter(
     (d) => d.dateExpiration && new Date(d.dateExpiration) >= now && new Date(d.dateExpiration) <= dans30j,
   );
-
-  const demandesTraitees = demandesApprouvees + demandesRefusees;
-  const demandeProgress = demandes.length > 0 ? Math.round((demandesTraitees / demandes.length) * 100) : 0;
 
   const prochainsFeries = [...joursFeries]
     .filter((j) => new Date(j.dateJour) >= now)
@@ -304,50 +293,21 @@ const DashboardPage: React.FC = () => {
     return [...demandeCards, ...docCards, ...ferieCards].slice(0, 6);
   }, [demandes, documents, now, dans30j, prochainsFeries]);
 
-  const overviewRows = [
-    {
-      label: 'Demandes en attente',
-      value: demandesEnAttente,
-      icon: <HiOutlineClock size={16} />,
-      path: '/mes-demandes',
-      dotClass: 'bg-amber-400 dark:bg-amber-500',
-    },
-    {
-      label: 'Demandes approuvees',
-      value: demandesApprouvees,
-      icon: <HiOutlineCheckCircle size={16} />,
-      path: '/mes-demandes',
-      dotClass: 'bg-emerald-400 dark:bg-emerald-500',
-    },
-    {
-      label: 'Demandes papier en attente',
-      value: papierEnAttente,
-      icon: <HiOutlineFolder size={16} />,
-      path: '/mes-demandes-papier',
-      dotClass: 'bg-indigo-400 dark:bg-indigo-500',
-    },
-    {
-      label: 'Validations a traiter',
-      value: validationsEnAttente,
-      icon: <HiOutlineExclamation size={16} />,
-      path: '/validations',
-      dotClass: 'bg-rose-400 dark:bg-rose-500',
-    },
-    {
-      label: 'Notifications non lues',
-      value: notifsNonLues,
-      icon: <HiOutlineBell size={16} />,
-      path: '/dashboard',
-      dotClass: 'bg-sky-400 dark:bg-sky-500',
-    },
-    {
-      label: 'Documents qui expirent',
-      value: docsExpirant.length,
-      icon: <HiOutlineFolder size={16} />,
-      path: '/mon-profil',
-      dotClass: 'bg-brand- dark:bg-brand-',
-    },
-  ];
+  const calendarData = useMemo(() => {
+    const congeDays = new Set<string>();
+    demandes
+      .filter((d) => d.statut === StatutDemande.APPROUVEE && d.dateDebut)
+      .forEach((d) => {
+        const start = new Date(d.dateDebut! + 'T00:00:00');
+        const end = d.dateFin ? new Date(d.dateFin + 'T00:00:00') : new Date(start);
+        for (const dt = new Date(start); dt <= end; dt.setDate(dt.getDate() + 1)) {
+          congeDays.add(`${dt.getFullYear()}-${String(dt.getMonth() + 1).padStart(2, '0')}-${String(dt.getDate()).padStart(2, '0')}`);
+        }
+      });
+    const feriesDays = new Set<string>(joursFeries.map((j) => j.dateJour.slice(0, 10)));
+    const feriesLabels = new Map<string, string>(joursFeries.map((j) => [j.dateJour.slice(0, 10), j.nomJour]));
+    return { congeDays, feriesDays, feriesLabels };
+  }, [demandes, joursFeries]);
 
   if (loading) {
     return (
@@ -541,60 +501,124 @@ const DashboardPage: React.FC = () => {
         </section>
 
         <section className="animate-fade-in-up space-y-5" style={{ animationDelay: '0.3s' }}>
-          <div className="flex items-center justify-between">
-            <h2 className="text-xl font-bold tracking-tight text-gray-800 dark:text-white">Ou en est mon espace RH ?</h2>
-          </div>
+          <h2 className="text-xl font-bold tracking-tight text-gray-800 dark:text-white">Mon calendrier RH</h2>
 
-          <div className="rounded-3xl border border-gray-100 bg-white p-7 shadow-sm dark:border-gray-700/50 dark:bg-gray-800">
-            {!loading && demandes.length === 0 && overviewRows.every((row) => Number(row.value) === 0) ? (
-              <div className="flex flex-col items-center justify-center py-10 text-center text-gray-500">
-                <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-gray-50 opacity-50 dark:bg-gray-700/50">
-                  <HiOutlineClipboardList size={32} />
+          <div className="relative overflow-hidden rounded-3xl border border-white/30 bg-white/70 p-6 shadow-xl backdrop-blur-xl dark:border-white/10 dark:bg-gray-800/60">
+            {/* Blobs décoratifs */}
+            <div className="pointer-events-none absolute -right-10 -top-10 h-40 w-40 rounded-full bg-brand-400/20 blur-[60px]" />
+            <div className="pointer-events-none absolute -bottom-10 -left-10 h-40 w-40 rounded-full bg-indigo-400/15 blur-[60px]" />
+
+            {/* Navigation mois */}
+            <div className="relative z-10 mb-5 flex items-center justify-between">
+              <button
+                onClick={() => setCalMonth((m) => new Date(m.getFullYear(), m.getMonth() - 1, 1))}
+                className="flex h-9 w-9 items-center justify-center rounded-full bg-white/50 text-gray-600 transition hover:bg-brand-50 hover:text-brand-500 dark:bg-white/10 dark:text-gray-300 dark:hover:bg-brand-500/20 dark:hover:text-brand-300"
+                aria-label="Mois précédent"
+              >
+                <HiOutlineChevronLeft size={18} />
+              </button>
+              <span className="text-base font-bold capitalize text-gray-800 dark:text-white">
+                {calMonth.toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' })}
+              </span>
+              <button
+                onClick={() => setCalMonth((m) => new Date(m.getFullYear(), m.getMonth() + 1, 1))}
+                className="flex h-9 w-9 items-center justify-center rounded-full bg-white/50 text-gray-600 transition hover:bg-brand-50 hover:text-brand-500 dark:bg-white/10 dark:text-gray-300 dark:hover:bg-brand-500/20 dark:hover:text-brand-300"
+                aria-label="Mois suivant"
+              >
+                <HiOutlineChevronRight size={18} />
+              </button>
+            </div>
+
+            {/* En-têtes jours */}
+            <div className="relative z-10 mb-2 grid grid-cols-7 text-center">
+              {['L', 'M', 'M', 'J', 'V', 'S', 'D'].map((d, i) => (
+                <div
+                  key={i}
+                  className={`pb-2 text-[11px] font-bold uppercase tracking-wider ${
+                    i >= 5 ? 'text-gray-300 dark:text-gray-600' : 'text-gray-400 dark:text-gray-500'
+                  }`}
+                >
+                  {d}
                 </div>
-                <h3 className="mb-1 text-sm font-bold text-gray-800 dark:text-white">Aucune activite RH</h3>
-                <p className="text-xs text-gray-400">Vos indicateurs apparaitront ici automatiquement.</p>
-              </div>
-            ) : (
-              <div className="flex h-full flex-col justify-center space-y-7">
-                <div>
-                  <div className="mb-2 flex items-end justify-between">
-                    <span className="text-sm font-bold text-gray-800 dark:text-white">Traitement des demandes</span>
-                    <span className="text-lg font-extrabold text-brand-500">{demandeProgress}%</span>
-                  </div>
-                  <div className="h-3 w-full overflow-hidden rounded-full bg-gray-100 dark:bg-gray-700/50">
+              ))}
+            </div>
+
+            {/* Grille des jours */}
+            <div className="relative z-10 grid grid-cols-7 gap-1">
+              {(() => {
+                const year = calMonth.getFullYear();
+                const month = calMonth.getMonth();
+                const firstDay = new Date(year, month, 1);
+                let startOffset = firstDay.getDay() - 1;
+                if (startOffset < 0) startOffset = 6;
+                const daysInMonth = new Date(year, month + 1, 0).getDate();
+                const todayStr = new Date().toISOString().slice(0, 10);
+                const cells: React.ReactNode[] = [];
+
+                for (let i = 0; i < startOffset; i++) {
+                  cells.push(<div key={`empty-${i}`} />);
+                }
+
+                for (let day = 1; day <= daysInMonth; day++) {
+                  const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+                  const isToday = dateStr === todayStr;
+                  const isFerie = calendarData.feriesDays.has(dateStr);
+                  const isConge = calendarData.congeDays.has(dateStr);
+                  const dayOfWeek = new Date(year, month, day).getDay();
+                  const isWeekend = dayOfWeek === 0 || dayOfWeek === 6;
+
+                  let cellClass = 'flex h-9 w-full items-center justify-center rounded-xl text-sm font-medium transition-all duration-150 ';
+                  if (isToday && isConge) {
+                    cellClass += 'bg-brand-500 text-white shadow-lg ring-2 ring-brand-300 dark:ring-brand-400';
+                  } else if (isToday && isFerie) {
+                    cellClass += 'bg-amber-500 text-white shadow-lg ring-2 ring-amber-300';
+                  } else if (isToday) {
+                    cellClass += 'bg-brand-500 text-white shadow-lg';
+                  } else if (isConge) {
+                    cellClass += 'bg-brand-100/80 text-brand-700 dark:bg-brand-500/20 dark:text-brand-300 font-bold';
+                  } else if (isFerie) {
+                    cellClass += 'bg-amber-100/80 text-amber-700 dark:bg-amber-500/20 dark:text-amber-300 font-bold';
+                  } else if (isWeekend) {
+                    cellClass += 'text-gray-300 dark:text-gray-600';
+                  } else {
+                    cellClass += 'text-gray-700 hover:bg-white/60 dark:text-gray-300 dark:hover:bg-white/10';
+                  }
+
+                  cells.push(
                     <div
-                      className="h-full rounded-full bg-gradient-to-r from-brand-400 to-brand-500 transition-all duration-1000 ease-out"
-                      style={{ width: `${demandeProgress}%` }}
-                    />
-                  </div>
-                </div>
+                      key={dateStr}
+                      className={cellClass}
+                      title={
+                        isFerie
+                          ? calendarData.feriesLabels.get(dateStr)
+                          : isConge
+                            ? 'Congé approuvé'
+                            : undefined
+                      }
+                    >
+                      {day}
+                    </div>,
+                  );
+                }
+                return cells;
+              })()}
+            </div>
 
-                <div className="space-y-4 border-t border-gray-50 pt-2 dark:border-gray-700/50">
-                  {overviewRows.map((row) => (
-                    <div key={row.label} className="group flex cursor-pointer items-center" onClick={() => navigate(row.path)}>
-                      <div className={`mr-3 h-2 w-2 rounded-full transition-transform group-hover:scale-150 ${row.dotClass}`} />
-                      <div className="mr-2 text-gray-400">{row.icon}</div>
-                      <div className="flex-1 text-sm font-medium text-gray-600 dark:text-gray-300">{row.label}</div>
-                      <span className="text-sm font-bold text-gray-900 dark:text-white">{row.value}</span>
-                    </div>
-                  ))}
-                </div>
-
-                <button
-                  onClick={() => navigate('/mes-demandes')}
-                  className="mt-2 w-full rounded-2xl border border-transparent bg-gray-50 py-3 text-sm font-bold text-gray-600 transition-colors hover:border-brand-500/20 hover:bg-brand-50 hover:text-brand-500 dark:bg-gray-700/30 dark:text-gray-300 dark:hover:bg-brand-500/10 dark:hover:text-brand-400"
-                >
-                  Acceder a mes demandes
-                </button>
-
-                <button
-                  onClick={fetchData}
-                  className="w-full rounded-2xl border border-gray-200 bg-white py-2.5 text-xs font-semibold uppercase tracking-wider text-gray-500 transition-colors hover:border-brand-300 hover:text-brand-500 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:hover:border-brand-500/40 dark:hover:text-brand-400"
-                >
-                  Actualiser les donnees
-                </button>
+            {/* Légende */}
+            <div className="relative z-10 mt-5 flex flex-wrap items-center gap-4 border-t border-gray-100/60 pt-4 dark:border-white/10">
+              <div className="flex items-center gap-1.5">
+                <div className="h-3 w-3 rounded-full bg-brand-500" />
+                <span className="text-xs text-gray-500 dark:text-gray-400">Aujourd'hui</span>
               </div>
-            )}
+              <div className="flex items-center gap-1.5">
+                <div className="h-3 w-3 rounded-full bg-brand-300" />
+                <span className="text-xs text-gray-500 dark:text-gray-400">Congé approuvé</span>
+              </div>
+              <div className="flex items-center gap-1.5">
+                <div className="h-3 w-3 rounded-full bg-amber-400" />
+                <span className="text-xs text-gray-500 dark:text-gray-400">Jour férié</span>
+              </div>
+            </div>
           </div>
         </section>
       </div>

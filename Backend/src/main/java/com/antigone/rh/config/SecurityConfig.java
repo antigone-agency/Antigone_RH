@@ -39,7 +39,8 @@ public class SecurityConfig {
                         .permitAll()
                         .requestMatchers(HttpMethod.GET,
                                 "/api/agent/download",
-                                "/api/media-plans/google-drive/callback")
+                                "/api/media-plans/google-drive/callback",
+                                "/api/clients/*/logo")
                         .permitAll()
                         .requestMatchers(HttpMethod.PUT, "/api/comptes/*/password").authenticated()
                         .requestMatchers("/api/admin/**", "/api/comptes/**", "/api/roles/**", "/api/referentiels/**")
