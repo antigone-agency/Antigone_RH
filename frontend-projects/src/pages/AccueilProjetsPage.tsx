@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
+import { motion } from 'framer-motion';
 import AnniversaireModal from '../components/ui/AnniversaireModal';
 import { employeService } from '../api/employeService';
 import {
@@ -18,7 +19,6 @@ import { notificationService } from '../api/notificationService';
 import { projetService } from '../api/projetService';
 import { tacheService } from '../api/tacheService';
 import { NotificationResponse, Projet, StatutProjet, StatutTache, TacheDetail } from '../types';
-import './AccueilProjetsPage.css';
 
 type Shortcut = {
   key: string;
@@ -363,264 +363,329 @@ const AccueilProjetsPage: React.FC = () => {
     return { aFaire, enCours, enRevision: Math.max(0, enRevision), termine, total };
   }, [taches]);
 
-  return (
-    <div className="min-h-screen bg-gray-50/30 dark:bg-gray-900/20 px-4 py-8 lg:px-8 lg:py-10 space-y-10 font-sans">
-      {/* 🚀 HERO SECTION */}
-      <section
-        className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-white via-brand-50/30 to-brand-100/50 dark:bg-gradient-to-br dark:from-gray-950 dark:via-gray-900 dark:to-black px-8 py-12 lg:px-12 lg:py-16 shadow-xl dark:shadow-2xl"
-        aria-label="Banniere d'accueil"
-      >
-        {/* Glow Effects */}
-        <div className="absolute top-0 right-0 -mr-20 -mt-20 h-[400px] w-[400px] rounded-full bg-brand-500/10 blur-[100px] pointer-events-none dark:bg-brand-500/20" />
-        <div className="absolute bottom-0 left-0 -ml-20 -mb-20 h-[300px] w-[300px] rounded-full bg-indigo-500/10 blur-[80px] pointer-events-none dark:bg-indigo-500/20" />
-        <div className="absolute inset-0 bg-[url('/noise.png')] opacity-[0.03] mix-blend-overlay pointer-events-none dark:opacity-[0.03]" />
+  // ── Framer-motion variants ────────────────────────────────────
+  const fadeUp = (delay = 0) => ({
+    initial: { opacity: 0, y: 22 },
+    animate: { opacity: 1, y: 0 },
+    transition: { duration: 0.52, ease: 'easeOut', delay },
+  });
 
-        <div className="relative z-10 flex flex-col lg:flex-row lg:items-end justify-between gap-8">
-          <div className="max-w-2xl">
-            <p className="text-brand-600 dark:text-brand-400 font-medium tracking-wide text-sm mb-3 uppercase flex items-center gap-2">
-              <HiOutlineLightningBolt size={18} />
+  return (
+    <div style={{ minHeight: '100vh', background: 'var(--bg)', display: 'flex', flexDirection: 'column', gap: '28px', paddingBottom: '48px' }}>
+
+      {/* ── HERO ────────────────────────────────────────────────────── */}
+      <motion.section
+        {...fadeUp(0)}
+        aria-label="Bannière d'accueil"
+        className="accueil-hero-card"
+        style={{
+          position: 'relative',
+          overflow: 'hidden',
+          margin: '24px 24px 0',
+          borderRadius: '24px',
+          padding: 'clamp(36px, 6vw, 56px) clamp(28px, 5vw, 56px)',
+        }}
+      >
+        {/* Glow spot haut-droite */}
+        <div style={{ position: 'absolute', right: '-80px', top: '-80px', width: '400px', height: '400px', borderRadius: '50%', background: 'rgba(232,106,46,0.12)', filter: 'blur(80px)', pointerEvents: 'none' }} />
+        {/* Glow spot bas-gauche */}
+        <div style={{ position: 'absolute', left: '-60px', bottom: '-60px', width: '300px', height: '300px', borderRadius: '50%', background: 'rgba(232,106,46,0.07)', filter: 'blur(70px)', pointerEvents: 'none' }} />
+
+        {/* Content */}
+        <div style={{ position: 'relative', zIndex: 1, display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) auto', gap: '32px', alignItems: 'end' }}>
+          <div>
+            {/* Label date — style RH */}
+            <p style={{ margin: '0 0 14px', color: '#e86a2e', fontSize: '13px', fontWeight: 600, letterSpacing: '0.1em', textTransform: 'uppercase', display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <HiOutlineLightningBolt size={15} />
               {heroDateText}
             </p>
-            <h1 className="text-4xl lg:text-5xl font-extrabold text-gray-900 dark:text-white tracking-tight leading-tight">
-              Bonjour, <span className="text-transparent bg-clip-text bg-gradient-to-r from-brand-600 to-brand-400 dark:from-brand-400 dark:to-brand-200">{displayName}</span>
+
+            <h1 className="accueil-hero-title" style={{ margin: 0, fontSize: 'clamp(26px, 4vw, 44px)', fontWeight: 800, letterSpacing: '-0.025em', lineHeight: 1.12 }}>
+              Bonjour,{' '}
+              <span style={{ background: 'linear-gradient(90deg, #e86a2e, #f5a87a)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}>{displayName}</span>
+              {' '}👋
             </h1>
-            <p className="mt-4 text-gray-600 dark:text-gray-400 text-lg leading-relaxed">
-              Prêt(e) à accomplir de grandes choses aujourd'hui ? Voici un aperçu de vos projets et tâches en cours.
+            <p className="accueil-hero-subtitle" style={{ margin: '14px 0 0', fontSize: '15px', lineHeight: 1.65 }}>
+              Prêt(e) à accomplir de grandes choses aujourd'hui&nbsp;? Voici votre tableau de bord.
             </p>
 
-            <div className="mt-8 relative max-w-md group">
-              <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                <HiOutlineSearch className="text-gray-400 group-focus-within:text-brand-500 dark:group-focus-within:text-brand-400 transition-colors" size={20} />
-              </div>
+            <div className="group" style={{ position: 'relative', marginTop: '28px', maxWidth: '440px' }}>
+              <HiOutlineSearch style={{ position: 'absolute', left: '18px', top: '50%', transform: 'translateY(-50%)', color: '#9ca3af', pointerEvents: 'none', zIndex: 1 }} size={18} />
               <input
                 type="text"
                 placeholder="Rechercher un projet, une tâche..."
-                className="w-full bg-white/70 dark:bg-white/5 border border-gray-200 dark:border-white/10 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 rounded-full py-3.5 pl-12 pr-6 focus:outline-none focus:ring-2 focus:ring-brand-500/50 focus:bg-white dark:focus:bg-white/10 transition-all backdrop-blur-md"
+                className="accueil-hero-search"
+                style={{ width: '100%', height: '50px', borderRadius: '9999px', fontSize: '14px', padding: '0 24px 0 48px', outline: 'none', boxSizing: 'border-box', fontFamily: 'inherit', transition: 'all 0.2s' }}
                 aria-label="Recherche principale"
+                onFocus={e => { e.target.style.outline = 'none'; e.target.style.boxShadow = '0 0 0 3px rgba(232,106,46,0.25)'; }}
+                onBlur={e => { e.target.style.boxShadow = 'none'; }}
               />
             </div>
           </div>
 
-          <div className="flex flex-wrap gap-4 lg:gap-6">
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '12px', alignSelf: 'end' }}>
             {heroStats.map((stat, i) => (
-              <div
+              <motion.div
                 key={stat.label}
-                className="flex flex-col justify-center bg-white/70 dark:bg-white/5 border border-gray-200 dark:border-white/10 backdrop-blur-md rounded-2xl px-6 py-5 min-w-[140px] hover:bg-white dark:hover:bg-white/10 transition-colors"
-                style={{ animation: `fadeUp 0.5s ease-out ${i * 0.1}s forwards` }}
+                initial={{ opacity: 0, y: 16 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.45, delay: 0.15 + i * 0.08 }}
+                className="accueil-hero-stat"
+                style={{ width: '150px', borderRadius: '16px', padding: '18px 22px' }}
               >
-                <strong className="text-3xl font-bold text-gray-900 dark:text-white mb-1">{stat.value}</strong>
-                <span className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-widest">{stat.label}</span>
-              </div>
+                <strong className="accueil-hero-stat-value" style={{ display: 'block', fontSize: '26px', fontWeight: 800, lineHeight: 1 }}>{stat.value}</strong>
+                <span className="accueil-hero-stat-label" style={{ display: 'block', marginTop: '7px', fontSize: '11px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.06em', wordBreak: 'break-word' }}>{stat.label}</span>
+              </motion.div>
             ))}
           </div>
         </div>
-      </section>
+      </motion.section>
 
-      {/* 🎯 FOCUS DU JOUR (Replaces shortcuts) */}
-      <section className="space-y-5 animate-fade-in-up" style={{ animationDelay: '0.15s' }}>
-        <div className="flex items-center justify-between">
-          <h2 className="text-xl font-bold text-gray-800 dark:text-white tracking-tight">Focus du jour</h2>
+      {/* ── FOCUS DU JOUR ─────────────────────────────────────────── */}
+      <motion.section {...fadeUp(0.15)} style={{ padding: '0 24px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px' }}>
+          <h2 style={{ margin: 0, color: 'var(--text-1)', fontSize: '17px', fontWeight: 700, letterSpacing: '-0.01em' }}>Focus du jour</h2>
         </div>
 
         {priorityTask ? (
           <div
+            role="button"
+            tabIndex={0}
             onClick={() => navigate('/mes-taches')}
-            className="group relative overflow-hidden bg-white dark:bg-gray-800 border-2 border-brand-500/20 dark:border-brand-400/20 rounded-3xl p-6 lg:p-8 cursor-pointer transition-all duration-300 hover:border-brand-500/50 hover:shadow-2xl hover:shadow-brand-500/10"
+            onKeyDown={e => e.key === 'Enter' && navigate('/mes-taches')}
+            style={{ position: 'relative', overflow: 'hidden', background: 'var(--surface)', border: '1.5px solid rgba(232,106,46,0.2)', borderRadius: '20px', padding: '26px 30px', cursor: 'pointer', transition: 'border-color 0.2s, box-shadow 0.2s' }}
+            onMouseEnter={e => { (e.currentTarget as HTMLDivElement).style.borderColor = 'rgba(232,106,46,0.45)'; (e.currentTarget as HTMLDivElement).style.boxShadow = '0 8px 40px rgba(232,106,46,0.1)'; }}
+            onMouseLeave={e => { (e.currentTarget as HTMLDivElement).style.borderColor = 'rgba(232,106,46,0.2)'; (e.currentTarget as HTMLDivElement).style.boxShadow = 'none'; }}
           >
-            {/* Elegant Background Glow */}
-            <div className="absolute top-0 right-0 -mr-10 -mt-10 h-40 w-40 rounded-full bg-brand-500/10 blur-[40px] pointer-events-none group-hover:bg-brand-500/20 transition-colors duration-500" />
-            <div className="absolute bottom-0 left-0 -ml-10 -mb-10 h-40 w-40 rounded-full bg-indigo-500/10 blur-[40px] pointer-events-none group-hover:bg-indigo-500/20 transition-colors duration-500" />
-
-            <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
-              <div className="flex items-start md:items-center gap-5">
-                <div className="flex-shrink-0 flex items-center justify-center w-14 h-14 rounded-2xl bg-gradient-to-br from-brand-400 to-brand-600 text-white shadow-lg text-2xl">
+            <div style={{ position: 'absolute', top: '-40px', right: '-40px', width: '160px', height: '160px', borderRadius: '50%', background: 'radial-gradient(circle, rgba(232,106,46,0.08) 0%, transparent 70%)', pointerEvents: 'none' }} />
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '20px', flexWrap: 'wrap' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '18px' }}>
+                <div style={{ flexShrink: 0, width: '52px', height: '52px', borderRadius: '16px', background: 'linear-gradient(135deg, #e86a2e, #f5a87a)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '22px', boxShadow: '0 4px 16px rgba(232,106,46,0.28)' }}>
                   {priorityTask.urgente ? '⚡' : '🎯'}
                 </div>
                 <div>
-                  <div className="flex items-center gap-3 mb-1">
-                    <h3 className="text-xl font-bold text-gray-900 dark:text-white group-hover:text-brand-500 transition-colors">{priorityTask.titre}</h3>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '5px' }}>
+                    <h3 style={{ margin: 0, color: 'var(--text-1)', fontSize: '16px', fontWeight: 700 }}>{priorityTask.titre}</h3>
                     {priorityTask.urgente && (
-                      <span className="px-2.5 py-0.5 text-[10px] font-extrabold uppercase tracking-widest text-red-600 bg-red-100 dark:text-red-400 dark:bg-red-500/10 rounded-full">
-                        Urgent
-                      </span>
+                      <span style={{ padding: '2px 9px', background: 'rgba(239,68,68,0.1)', color: '#ef4444', borderRadius: '9999px', fontSize: '10px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em' }}>Urgent</span>
                     )}
                   </div>
-                  <p className="text-sm font-medium text-gray-500 dark:text-gray-400">
-                    Projet : <span className="text-gray-700 dark:text-gray-300">{priorityTask.projetNom || 'Personnel'}</span>
+                  <p style={{ margin: 0, color: 'var(--text-2)', fontSize: '13px' }}>
+                    Projet&nbsp;: <strong style={{ color: 'var(--text-1)', fontWeight: 600 }}>{priorityTask.projetNom || 'Personnel'}</strong>
                   </p>
                 </div>
               </div>
-
-              <div className="flex flex-col md:items-end gap-2 md:gap-1">
-                <p className="text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-widest">Échéance</p>
-                <div className="flex items-center gap-2 text-gray-900 dark:text-white font-bold">
-                  <HiOutlineCalendar size={18} className="text-brand-500" />
+              <div style={{ textAlign: 'right' }}>
+                <p style={{ margin: '0 0 4px', color: 'var(--text-2)', fontSize: '11px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.08em' }}>Échéance</p>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '7px', color: 'var(--text-1)', fontWeight: 700, fontSize: '14px' }}>
+                  <HiOutlineCalendar size={15} style={{ color: 'var(--brand)' }} />
                   {formatShortDate(priorityTask.dateEcheance)}
                 </div>
               </div>
             </div>
           </div>
         ) : (
-          <div className="flex items-center gap-5 p-6 bg-gradient-to-r from-emerald-50 to-teal-50 dark:from-emerald-900/10 dark:to-teal-900/10 border border-emerald-100 dark:border-emerald-500/20 rounded-3xl">
-            <div className="flex items-center justify-center w-12 h-12 rounded-full bg-emerald-100 dark:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 text-2xl">
-              🎉
-            </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '18px', padding: '22px 26px', background: 'rgba(16,185,129,0.05)', border: '1px solid rgba(16,185,129,0.15)', borderRadius: '20px' }}>
+            <div style={{ flexShrink: 0, width: '46px', height: '46px', borderRadius: '50%', background: 'rgba(16,185,129,0.12)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '22px' }}>🎉</div>
             <div>
-              <h3 className="text-lg font-bold text-emerald-800 dark:text-emerald-300">Vous êtes à jour !</h3>
-              <p className="text-sm text-emerald-600 dark:text-emerald-400/80">Aucune tâche ouverte, profitez de cette tranquillité pour avancer sur de nouvelles idées.</p>
+              <h3 style={{ margin: '0 0 4px', color: '#059669', fontSize: '15px', fontWeight: 700 }}>Vous êtes à jour !</h3>
+              <p style={{ margin: 0, color: 'rgba(5,150,105,0.7)', fontSize: '13px' }}>Aucune tâche ouverte pour le moment. Profitez-en !</p>
             </div>
           </div>
         )}
-      </section>
+      </motion.section>
 
-      {/* ✨ PROJECTS & ACTIVITY GRID */}
-      <div className="grid grid-cols-1 xl:grid-cols-3 gap-8">
+      {/* ── GRID : PROJETS + TÂCHES ─────────────────────────────── */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0,2fr) minmax(0,1fr)', gap: '24px', padding: '0 24px' }} className="accueil-main-grid">
 
-        {/* MES PROJETS RECENTS */}
-        <section className="xl:col-span-2 space-y-5 animate-fade-in-up" style={{ animationDelay: '0.2s' }}>
-          <div className="flex items-center justify-between">
-            <h2 className="text-xl font-bold text-gray-800 dark:text-white tracking-tight">Mes projets récents</h2>
+        {/* MES PROJETS RÉCENTS */}
+        <motion.section {...fadeUp(0.22)}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px' }}>
+            <h2 style={{ margin: 0, color: 'var(--text-1)', fontSize: '17px', fontWeight: 700, letterSpacing: '-0.01em' }}>Mes projets récents</h2>
             <button
               type="button"
-              className="text-sm font-bold text-brand-500 hover:text-brand-600 dark:text-brand-400 transition-colors flex items-center gap-1 group"
+              style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--brand)', fontSize: '13px', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '4px', fontFamily: 'inherit' }}
               onClick={() => navigate('/projets')}
             >
-              Voir tout <span className="transform group-hover:translate-x-1 transition-transform">→</span>
+              Voir tout →
             </button>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))', gap: '16px' }}>
             {!loading && recentProjects.length === 0 ? (
-              <article className="col-span-full flex flex-col items-center justify-center p-12 bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700/50 rounded-3xl text-center">
-                <span className="text-5xl mb-4 opacity-50">📁</span>
-                <h3 className="text-lg font-bold text-gray-800 dark:text-white mb-2">Aucun projet récent</h3>
-                <p className="text-sm text-gray-500 dark:text-gray-400 max-w-xs">Vous n'êtes affecté(e) à aucun projet récent pour le moment.</p>
-              </article>
+              <div style={{ gridColumn: '1/-1', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '56px 24px', background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: '20px', textAlign: 'center' }}>
+                <span style={{ fontSize: '40px', opacity: 0.4, marginBottom: '12px' }}>📁</span>
+                <h3 style={{ margin: '0 0 6px', color: 'var(--text-1)', fontSize: '15px', fontWeight: 700 }}>Aucun projet récent</h3>
+                <p style={{ margin: 0, color: 'var(--text-2)', fontSize: '13px', maxWidth: '260px' }}>Vous n'êtes affecté(e) à aucun projet récent pour le moment.</p>
+              </div>
             ) : (
               recentProjects.map((project, index) => (
-                <article
+                <motion.article
                   key={project.id}
-                  className="group relative flex flex-col bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700/50 rounded-3xl p-6 transition-all duration-300 hover:shadow-2xl hover:shadow-gray-200/50 dark:hover:shadow-black/20 hover:-translate-y-1 cursor-pointer overflow-hidden"
-                  style={{ animation: `fadeUp 0.5s ease-out ${0.2 + index * 0.1}s forwards` }}
+                  initial={{ opacity: 0, y: 16 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.4, delay: 0.28 + index * 0.07 }}
+                  style={{ position: 'relative', display: 'flex', flexDirection: 'column', background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: '20px', padding: '22px', cursor: 'pointer', transition: 'transform 0.2s, box-shadow 0.2s', overflow: 'hidden' }}
+                  onMouseEnter={e => { (e.currentTarget as HTMLElement).style.transform = 'translateY(-3px)'; (e.currentTarget as HTMLElement).style.boxShadow = '0 12px 40px rgba(0,0,0,0.1)'; }}
+                  onMouseLeave={e => { (e.currentTarget as HTMLElement).style.transform = 'translateY(0)'; (e.currentTarget as HTMLElement).style.boxShadow = 'none'; }}
                   onClick={() => navigate(project.taskPath)}
                 >
-                  {/* Subtle top gradient line */}
-                  <div className="absolute top-0 left-0 right-0 h-1" style={{ background: project.gradient }} />
+                  {/* Colour accent top bar */}
+                  <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: '3px', background: project.gradient, borderRadius: '20px 20px 0 0' }} />
 
-                  <header className="flex items-center justify-between mb-4">
-                    <span className="px-3 py-1 text-[10px] font-bold uppercase tracking-wider rounded-full bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300">
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '14px', marginTop: '4px' }}>
+                    <span style={{ padding: '3px 10px', background: 'var(--bg)', border: '1px solid var(--border)', borderRadius: '9999px', fontSize: '10px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em', color: 'var(--text-2)' }}>
                       {project.status}
                     </span>
-                    <span className="text-2xl transform group-hover:scale-110 transition-transform duration-300" aria-hidden="true">{project.emoji}</span>
-                  </header>
-
-                  <div className="flex-1">
-                    <h3 className="text-lg font-bold text-gray-900 dark:text-white leading-snug group-hover:text-brand-500 transition-colors">{project.name}</h3>
-                    <p className="mt-2 text-xs font-medium text-gray-400 dark:text-gray-500">{project.createdText}</p>
+                    <span style={{ fontSize: '20px' }} aria-hidden="true">{project.emoji}</span>
                   </div>
 
-                  <footer className="mt-6 flex items-center justify-between pt-4 border-t border-gray-50 dark:border-gray-700/50">
-                    <div className="flex -space-x-2" aria-label="Managers">
+                  <div style={{ flex: 1 }}>
+                    <h3 style={{ margin: '0 0 6px', color: 'var(--text-1)', fontSize: '15px', fontWeight: 700, lineHeight: 1.3 }}>{project.name}</h3>
+                    <p style={{ margin: 0, color: 'var(--text-2)', fontSize: '11px', fontWeight: 500 }}>{project.createdText}</p>
+                  </div>
+
+                  <div style={{ marginTop: '18px', paddingTop: '14px', borderTop: '1px solid var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                    <div style={{ display: 'flex' }} aria-label="Managers">
                       {project.managers.map((manager, idx) => (
                         <div
                           key={`${project.id}-${manager}-${idx}`}
-                          className="flex items-center justify-center w-8 h-8 rounded-full border-2 border-white dark:border-gray-800 bg-gray-100 dark:bg-gray-700 text-[10px] font-bold text-gray-600 dark:text-gray-300 shadow-sm"
+                          style={{ width: '28px', height: '28px', borderRadius: '50%', border: '2px solid var(--surface)', background: 'var(--bg)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '9px', fontWeight: 700, color: 'var(--text-2)', marginLeft: idx > 0 ? '-8px' : 0 }}
                         >
                           {manager}
                         </div>
                       ))}
                     </div>
-                    <span className="text-xs font-bold text-brand-500 opacity-0 group-hover:opacity-100 transform translate-x-2 group-hover:translate-x-0 transition-all duration-300">
-                      Voir tâches →
-                    </span>
-                  </footer>
-                </article>
+                    <span style={{ fontSize: '11px', fontWeight: 700, color: 'var(--brand)' }}>Voir tâches →</span>
+                  </div>
+                </motion.article>
               ))
             )}
           </div>
-        </section>
+        </motion.section>
 
-        {/* MES TACHES OVERVIEW */}
-        <section className="space-y-5 animate-fade-in-up" style={{ animationDelay: '0.3s' }}>
-          <div className="flex items-center justify-between">
-            <h2 className="text-xl font-bold text-gray-800 dark:text-white tracking-tight">Où en sont mes tâches ?</h2>
+        {/* MES TÂCHES */}
+        <motion.section {...fadeUp(0.3)}>
+          <div style={{ marginBottom: '16px' }}>
+            <h2 style={{ margin: 0, color: 'var(--text-1)', fontSize: '17px', fontWeight: 700, letterSpacing: '-0.01em' }}>Mes tâches</h2>
           </div>
 
-          <div className="bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700/50 rounded-3xl p-7 shadow-sm">
+          <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: '20px', padding: '24px' }}>
             {!loading && taskStats.total === 0 ? (
-              <div className="flex flex-col items-center justify-center py-10 text-center text-gray-500">
-                <div className="flex items-center justify-center w-16 h-16 rounded-full bg-gray-50 dark:bg-gray-700/50 mb-4 opacity-50">
-                  <HiOutlineClipboardList size={32} />
+              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '32px 0', textAlign: 'center' }}>
+                <div style={{ width: '52px', height: '52px', borderRadius: '50%', background: 'var(--bg)', display: 'flex', alignItems: 'center', justifyContent: 'center', opacity: 0.5, marginBottom: '12px' }}>
+                  <HiOutlineClipboardList size={26} color="var(--text-2)" />
                 </div>
-                <h3 className="text-sm font-bold text-gray-800 dark:text-white mb-1">Aucune tâche assignée</h3>
-                <p className="text-xs text-gray-400">Quand vous aurez des tâches, votre progression apparaîtra ici.</p>
+                <h3 style={{ margin: '0 0 4px', color: 'var(--text-1)', fontSize: '14px', fontWeight: 700 }}>Aucune tâche</h3>
+                <p style={{ margin: 0, color: 'var(--text-2)', fontSize: '12px' }}>Votre progression apparaîtra ici.</p>
               </div>
             ) : (
-              <div className="flex flex-col h-full justify-center space-y-7">
-                {/* Progress Bar Global */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+                {/* Progress */}
                 <div>
-                  <div className="flex items-end justify-between mb-2">
-                    <span className="text-sm font-bold text-gray-800 dark:text-white">Avancement global</span>
-                    <span className="text-lg font-extrabold text-brand-500">{taskStats.total > 0 ? Math.round((taskStats.termine / taskStats.total) * 100) : 0}%</span>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
+                    <span style={{ color: 'var(--text-1)', fontSize: '13px', fontWeight: 600 }}>Avancement global</span>
+                    <span style={{ color: 'var(--brand)', fontSize: '16px', fontWeight: 800 }}>
+                      {taskStats.total > 0 ? Math.round((taskStats.termine / taskStats.total) * 100) : 0}%
+                    </span>
                   </div>
-                  <div className="w-full h-3 bg-gray-100 dark:bg-gray-700/50 rounded-full overflow-hidden">
-                    <div
-                      className="h-full bg-gradient-to-r from-brand-400 to-brand-500 rounded-full transition-all duration-1000 ease-out"
-                      style={{ width: `${taskStats.total > 0 ? (taskStats.termine / taskStats.total) * 100 : 0}%` }}
+                  <div style={{ width: '100%', height: '6px', background: 'var(--bg)', borderRadius: '9999px', overflow: 'hidden' }}>
+                    <motion.div
+                      initial={{ width: 0 }}
+                      animate={{ width: `${taskStats.total > 0 ? (taskStats.termine / taskStats.total) * 100 : 0}%` }}
+                      transition={{ duration: 1, delay: 0.5, ease: 'easeOut' }}
+                      style={{ height: '100%', background: 'linear-gradient(90deg, #e86a2e, #f5a87a)', borderRadius: '9999px' }}
                     />
                   </div>
                 </div>
 
-                <div className="pt-2 border-t border-gray-50 dark:border-gray-700/50 space-y-4">
-                  {/* Stat: À faire */}
-                  <div className="flex items-center group cursor-pointer" onClick={() => navigate('/mes-taches')}>
-                    <div className="w-2 h-2 rounded-full bg-gray-300 dark:bg-gray-600 mr-3 group-hover:scale-150 transition-transform" />
-                    <div className="flex-1 text-sm font-medium text-gray-600 dark:text-gray-300">À faire</div>
-                    <span className="text-sm font-bold text-gray-900 dark:text-white">{taskStats.aFaire}</span>
-                  </div>
-
-                  {/* Stat: En cours */}
-                  <div className="flex items-center group cursor-pointer" onClick={() => navigate('/mes-taches')}>
-                    <div className="w-2 h-2 rounded-full bg-blue-400 dark:bg-blue-500 mr-3 group-hover:scale-150 transition-transform shadow-[0_0_8px_rgba(96,165,250,0.5)]" />
-                    <div className="flex-1 text-sm font-medium text-gray-600 dark:text-gray-300">En cours</div>
-                    <span className="text-sm font-bold text-gray-900 dark:text-white">{taskStats.enCours}</span>
-                  </div>
-
-                  {/* Stat: En révision */}
-                  <div className="flex items-center group cursor-pointer" onClick={() => navigate('/mes-taches')}>
-                    <div className="w-2 h-2 rounded-full bg-purple-400 dark:bg-purple-500 mr-3 group-hover:scale-150 transition-transform shadow-[0_0_8px_rgba(192,132,252,0.5)]" />
-                    <div className="flex-1 text-sm font-medium text-gray-600 dark:text-gray-300">En révision / Test</div>
-                    <span className="text-sm font-bold text-gray-900 dark:text-white">{taskStats.enRevision}</span>
-                  </div>
-
-                  {/* Stat: Terminé */}
-                  <div className="flex items-center group cursor-pointer" onClick={() => navigate('/mes-taches')}>
-                    <div className="w-2 h-2 rounded-full bg-emerald-400 dark:bg-emerald-500 mr-3 group-hover:scale-150 transition-transform shadow-[0_0_8px_rgba(52,211,153,0.5)]" />
-                    <div className="flex-1 text-sm font-medium text-gray-600 dark:text-gray-300">Terminées</div>
-                    <span className="text-sm font-bold text-gray-900 dark:text-white">{taskStats.termine}</span>
-                  </div>
+                {/* Stats */}
+                <div style={{ paddingTop: '8px', borderTop: '1px solid var(--border)', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                  {[
+                    { label: 'À faire', count: taskStats.aFaire, color: 'var(--border)' },
+                    { label: 'En cours', count: taskStats.enCours, color: '#60a5fa' },
+                    { label: 'En révision', count: taskStats.enRevision, color: '#c084fc' },
+                    { label: 'Terminées', count: taskStats.termine, color: '#34d399' },
+                  ].map(row => (
+                    <div key={row.label} style={{ display: 'flex', alignItems: 'center', cursor: 'pointer' }} onClick={() => navigate('/mes-taches')}>
+                      <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: row.color, marginRight: '10px', flexShrink: 0 }} />
+                      <div style={{ flex: 1, color: 'var(--text-2)', fontSize: '13px', fontWeight: 500 }}>{row.label}</div>
+                      <span style={{ color: 'var(--text-1)', fontSize: '13px', fontWeight: 700 }}>{row.count}</span>
+                    </div>
+                  ))}
                 </div>
 
                 <button
                   onClick={() => navigate('/mes-taches')}
-                  className="w-full mt-2 py-3 rounded-2xl bg-gray-50 hover:bg-brand-50 dark:bg-gray-700/30 dark:hover:bg-brand-500/10 text-sm font-bold text-gray-600 dark:text-gray-300 hover:text-brand-500 dark:hover:text-brand-400 transition-colors border border-transparent hover:border-brand-500/20"
+                  style={{ marginTop: '4px', width: '100%', height: '40px', borderRadius: '12px', border: '1px solid var(--border)', background: 'var(--bg)', color: 'var(--text-2)', fontSize: '13px', fontWeight: 700, cursor: 'pointer', transition: 'border-color 0.2s, color 0.2s', fontFamily: 'inherit' }}
+                  onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.borderColor = 'var(--brand)'; (e.currentTarget as HTMLButtonElement).style.color = 'var(--brand)'; }}
+                  onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.borderColor = 'var(--border)'; (e.currentTarget as HTMLButtonElement).style.color = 'var(--text-2)'; }}
                 >
                   Accéder au Kanban
                 </button>
               </div>
             )}
           </div>
-        </section>
+        </motion.section>
       </div>
 
       <style>{`
-        @keyframes fadeUp {
-          from { opacity: 0; transform: translateY(15px); }
-          to { opacity: 1; transform: translateY(0); }
+        /* ── Hero card ── */
+        .accueil-hero-card {
+          background: linear-gradient(135deg, #ffffff 0%, rgba(255,247,237,0.5) 50%, rgba(255,237,213,0.65) 100%);
+          box-shadow: 0 8px 32px rgba(0,0,0,0.07), 0 2px 8px rgba(0,0,0,0.04);
         }
-        .animate-fade-in-up {
-          opacity: 0;
-          animation: fadeUp 0.6s ease-out forwards;
+        .dark .accueil-hero-card {
+          background: linear-gradient(135deg, #030712 0%, #111827 55%, #0d1117 100%) !important;
+          box-shadow: 0 20px 60px rgba(0,0,0,0.45) !important;
+        }
+
+        /* ── Hero text ── */
+        .accueil-hero-title { color: #1a1814; }
+        .dark .accueil-hero-title { color: #f9fafb; }
+        .accueil-hero-subtitle { color: #6b7280; }
+        .dark .accueil-hero-subtitle { color: #9ca3af; }
+
+        /* ── Hero search ── */
+        .accueil-hero-search {
+          background: rgba(255,255,255,0.72);
+          border: 1px solid #e5e7eb;
+          color: #1a1814;
+          backdrop-filter: blur(8px);
+        }
+        .accueil-hero-search::placeholder { color: #9ca3af; }
+        .dark .accueil-hero-search {
+          background: rgba(255,255,255,0.06) !important;
+          border-color: rgba(255,255,255,0.12) !important;
+          color: #f9fafb !important;
+        }
+        .dark .accueil-hero-search::placeholder { color: #6b7280; }
+
+        /* ── Hero stat cards ── */
+        .accueil-hero-stat {
+          background: rgba(255,255,255,0.72);
+          border: 1px solid #e5e7eb;
+          backdrop-filter: blur(8px);
+          transition: background 0.2s;
+        }
+        .accueil-hero-stat:hover { background: rgba(255,255,255,0.92); }
+        .dark .accueil-hero-stat {
+          background: rgba(255,255,255,0.05) !important;
+          border-color: rgba(255,255,255,0.1) !important;
+        }
+        .dark .accueil-hero-stat:hover { background: rgba(255,255,255,0.09) !important; }
+
+        .accueil-hero-stat-value { color: #111827; }
+        .dark .accueil-hero-stat-value { color: #f9fafb; }
+        .accueil-hero-stat-label { color: #6b7280; }
+        .dark .accueil-hero-stat-label { color: #9ca3af; }
+
+        /* ── Responsive grid ── */
+        @media (max-width: 900px) {
+          .accueil-main-grid { grid-template-columns: 1fr !important; }
+        }
+        @media (max-width: 700px) {
+          .accueil-hero-card > div > div:first-child { grid-template-columns: 1fr !important; }
         }
       `}</style>
 

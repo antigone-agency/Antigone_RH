@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { HiOutlinePlus, HiOutlinePencil, HiOutlineTrash, HiOutlineShieldCheck } from 'react-icons/hi';
+import { HiOutlinePlus, HiOutlinePencil, HiOutlineTrash, HiOutlineShieldCheck, HiOutlineCheck } from 'react-icons/hi';
 import { roleService } from '../api/roleService';
 import { RoleDTO, PermissionDTO } from '../types';
 import Button from '../components/ui/Button';
@@ -43,6 +43,41 @@ const RolesPage: React.FC = () => {
       setLoading(false);
     }
   };
+
+  const PERMISSION_GROUPS: { label: string; color: string; codes: string[] }[] = [
+    {
+      label: 'RH Administration',
+      color: '#683b77',
+      codes: ['VIEW_DASHBOARD', 'VIEW_EMPLOYES', 'VIEW_DEMANDES', 'VIEW_VALIDATIONS', 'VIEW_REFERENTIELS', 'VIEW_COMPTES', 'VIEW_ROLES', 'VIEW_MONITORING'],
+    },
+    {
+      label: 'Calendriers',
+      color: '#0891b2',
+      codes: ['VIEW_CALENDRIER', 'VIEW_CALENDRIER_PROJETS', 'VIEW_DEADLINES', 'VIEW_REUNIONS'],
+    },
+    {
+      label: 'Projets',
+      color: '#059669',
+      codes: ['VIEW_PROJETS', 'VIEW_TOUS_PROJETS', 'VIEW_EQUIPES', 'VIEW_TACHES', 'MANAGE_ALL_PROJETS', 'VIEW_PROJETS_CREATE_TACHES'],
+    },
+    {
+      label: 'Clients',
+      color: '#d97706',
+      codes: ['VIEW_CLIENTS', 'CREATE_CLIENT', 'EDIT_CLIENT', 'DELETE_CLIENT'],
+    },
+    {
+      label: 'Média Plan',
+      color: '#dc2626',
+      codes: ['VIEW_MEDIA_PLAN', 'VIEW_TOUS_MEDIA_PLAN'],
+    },
+    {
+      label: 'Espace personnel (employé)',
+      color: '#6366f1',
+      codes: ['VIEW_DASHBOARD_RH', 'VIEW_MES_DEMANDES', 'VIEW_MES_PROJETS', 'VIEW_MON_CALENDRIER'],
+    },
+  ];
+
+  const getPermByCode = (code: string) => allPermissions.find(p => p.permission === code);
 
   const openCreate = () => {
     setEditingRole(null);
@@ -127,9 +162,13 @@ const RolesPage: React.FC = () => {
       render: (item: RoleDTO) => (
         <div className="flex flex-wrap gap-1 max-w-md">
           {item.permissions?.length > 0 ? (
-            item.permissions.map((p) => (
-              <Badge key={p.id} variant="light" color="primary">{p.label}</Badge>
-            ))
+            item.permissions.map((p) => {
+              const dashIdx = p.label?.indexOf('—') ?? -1;
+              const shortName = dashIdx > -1 ? p.label.slice(0, dashIdx).trim() : (p.label || p.permission);
+              return (
+                <Badge key={p.id} variant="light" color="primary" title={p.label}>{shortName}</Badge>
+              );
+            })
           ) : (
             <span className="text-gray-400 text-theme-sm">Aucune permission</span>
           )}
@@ -208,24 +247,115 @@ const RolesPage: React.FC = () => {
                 {selectedPermissionIds.size === allPermissions.length ? 'Tout désélectionner' : 'Tout sélectionner'}
               </button>
             </div>
-            <div className="space-y-2 max-h-64 overflow-y-auto rounded-lg border border-gray-200 dark:border-gray-700 p-3">
-              {allPermissions.map((perm) => (
-                <label
-                  key={perm.id}
-                  className="flex items-center gap-3 p-2 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 cursor-pointer transition-colors"
-                >
-                  <input
-                    type="checkbox"
-                    checked={selectedPermissionIds.has(perm.id)}
-                    onChange={() => togglePermission(perm.id)}
-                    className="h-4 w-4 rounded border-gray-300 text-brand-500 focus:ring-brand-500 dark:border-gray-600"
-                  />
-                  <div>
-                    <span className="text-theme-sm font-medium text-gray-700 dark:text-gray-300">{perm.label}</span>
-                    <span className="text-theme-xs text-gray-400 ml-2">({perm.permission})</span>
+            <div className="space-y-4 max-h-[420px] overflow-y-auto rounded-lg border border-gray-200 dark:border-gray-700 p-3">
+              {PERMISSION_GROUPS.map((group) => {
+                const groupPerms = group.codes.map(getPermByCode).filter(Boolean) as typeof allPermissions;
+                if (groupPerms.length === 0) return null;
+                const allSelected = groupPerms.every(p => selectedPermissionIds.has(p.id));
+                const someSelected = groupPerms.some(p => selectedPermissionIds.has(p.id));
+                return (
+                  <div key={group.label}>
+                    {/* Group header */}
+                    <div className="flex items-center justify-between mb-2 pb-1.5 border-b border-gray-100 dark:border-gray-700">
+                      <span className="text-[11px] font-bold uppercase tracking-wider" style={{ color: group.color }}>
+                        {group.label}
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setSelectedPermissionIds(prev => {
+                            const next = new Set(prev);
+                            if (allSelected) {
+                              groupPerms.forEach(p => next.delete(p.id));
+                            } else {
+                              groupPerms.forEach(p => next.add(p.id));
+                            }
+                            return next;
+                          });
+                        }}
+                        className="text-[10px] font-medium transition-colors hover:opacity-75"
+                        style={{ color: group.color }}
+                      >
+                        {allSelected ? 'Tout retirer' : someSelected ? 'Tout ajouter' : 'Sélectionner tout'}
+                      </button>
+                    </div>
+                    {/* Permissions in group */}
+                    <div className="space-y-1">
+                      {groupPerms.map((perm) => {
+                        const isChecked = selectedPermissionIds.has(perm.id);
+                        // Split label at "—" to show code name + description
+                        const dashIdx = perm.label.indexOf('—');
+                        const shortName = dashIdx > -1 ? perm.label.slice(0, dashIdx).trim() : perm.label;
+                        const description = dashIdx > -1 ? perm.label.slice(dashIdx + 1).trim() : '';
+                        return (
+                          <label
+                            key={perm.id}
+                            className={`flex items-start gap-3 p-2.5 rounded-lg cursor-pointer transition-all border ${
+                              isChecked
+                                ? 'border-transparent bg-opacity-10'
+                                : 'border-transparent hover:bg-gray-50 dark:hover:bg-gray-800'
+                            }`}
+                            style={isChecked ? { backgroundColor: `${group.color}12`, borderColor: `${group.color}30` } : {}}
+                          >
+                            {/* Custom checkbox */}
+                            <div
+                              className="mt-0.5 shrink-0 w-[18px] h-[18px] rounded flex items-center justify-center border-2 transition-all"
+                              style={isChecked
+                                ? { backgroundColor: group.color, borderColor: group.color }
+                                : { borderColor: '#d1d5db' }}
+                            >
+                              {isChecked && <HiOutlineCheck size={11} className="text-white" />}
+                            </div>
+                            <input
+                              type="checkbox"
+                              checked={isChecked}
+                              onChange={() => togglePermission(perm.id)}
+                              className="sr-only"
+                            />
+                            <div className="min-w-0">
+                              <div className="text-theme-sm font-semibold text-gray-800 dark:text-white leading-tight">
+                                {shortName}
+                              </div>
+                              {description && (
+                                <div className="text-[11px] text-gray-500 dark:text-gray-400 mt-0.5 leading-snug">
+                                  {description}
+                                </div>
+                              )}
+                            </div>
+                          </label>
+                        );
+                      })}
+                    </div>
                   </div>
-                </label>
-              ))}
+                );
+              })}
+              {/* Permissions not in any group */}
+              {(() => {
+                const allGroupedCodes = PERMISSION_GROUPS.flatMap(g => g.codes);
+                const ungrouped = allPermissions.filter(p => !allGroupedCodes.includes(p.permission));
+                if (ungrouped.length === 0) return null;
+                return (
+                  <div>
+                    <div className="mb-2 pb-1.5 border-b border-gray-100 dark:border-gray-700">
+                      <span className="text-[11px] font-bold uppercase tracking-wider text-gray-400">Autres</span>
+                    </div>
+                    <div className="space-y-1">
+                      {ungrouped.map(perm => (
+                        <label key={perm.id} className="flex items-center gap-3 p-2 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 cursor-pointer">
+                          <input
+                            type="checkbox"
+                            checked={selectedPermissionIds.has(perm.id)}
+                            onChange={() => togglePermission(perm.id)}
+                            className="h-4 w-4 rounded border-gray-300 text-brand-500 focus:ring-brand-500 dark:border-gray-600"
+                          />
+                          <span className="text-theme-sm text-gray-700 dark:text-gray-300">{perm.label}</span>
+                          <span className="text-theme-xs text-gray-400">({perm.permission})</span>
+                        </label>
+                      ))}
+                    </div>
+                  </div>
+                );
+              })()}
             </div>
             <p className="text-theme-xs text-gray-400 mt-1">
               {selectedPermissionIds.size} permission(s) sélectionnée(s) sur {allPermissions.length}

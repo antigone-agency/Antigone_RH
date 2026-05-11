@@ -49,12 +49,30 @@ public class AgentService {
         String heureDebut = "09:00";
         String heureFin = "18:00";
         String joursTravail = "LUNDI,MARDI,MERCREDI,JEUDI,VENDREDI";
+        String pauseDebut = null;
+        String pauseFin = null;
 
         if (horaire != null) {
             heureDebut = horaire.getHeureDebut().toString();
             heureFin = horaire.getHeureFin().toString();
             joursTravail = horaire.getJoursTravail();
+            if (horaire.getPauseDebutMidi() != null) {
+                pauseDebut = horaire.getPauseDebutMidi().toString();
+            }
+            if (horaire.getPauseFinMidi() != null) {
+                pauseFin = horaire.getPauseFinMidi().toString();
+            }
         }
+
+        // Jours fériés de l'année courante
+        int annee = LocalDate.now().getYear();
+        LocalDate debutAnnee = LocalDate.of(annee, 1, 1);
+        LocalDate finAnnee = LocalDate.of(annee, 12, 31);
+        List<String> joursFeries = calendrierRepository
+                .findByTypeJourAndDateJourBetween(com.antigone.rh.enums.TypeJour.FERIE, debutAnnee, finAnnee)
+                .stream()
+                .map(c -> c.getDateJour().toString())
+                .collect(Collectors.toList());
 
         String ssid = getParametreSysteme("SSID_ENTREPRISE", "");
         String ipRange = getParametreSysteme("IP_RESEAU_ENTREPRISE", "192.168.1.0/24");
@@ -68,7 +86,10 @@ public class AgentService {
                 .toleranceRetardMinutes(0)
                 .heureDebutTravail(heureDebut)
                 .heureFinTravail(heureFin)
+                .pauseDebutMidi(pauseDebut)
+                .pauseFinMidi(pauseFin)
                 .joursTravail(joursTravail)
+                .joursFeries(joursFeries)
                 .build();
     }
 

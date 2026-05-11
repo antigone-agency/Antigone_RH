@@ -224,7 +224,10 @@ const HistoriqueAgentPage: React.FC = () => {
   const monthToRange = (ym: string) => {
     const [year, month] = ym.split('-').map(Number);
     const debut = formatLocalDate(new Date(year, month - 1, 1));
-    const fin = formatLocalDate(new Date(year, month, 0));
+    const lastDay = new Date(year, month, 0);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const fin = formatLocalDate(lastDay <= today ? lastDay : today);
     return { debut, fin };
   };
 
@@ -258,17 +261,19 @@ const HistoriqueAgentPage: React.FC = () => {
     setPage(1);
   }, [selectedEmployeId, selectedMonth, filterStatut]);
 
+  const todayStr = formatLocalDate(new Date());
+
   const stats = historique ? {
-    totalJours: historique.jours.length,
-    presents: historique.jours.filter(j => j.statut === 'PRESENT').length,
-    retards: historique.jours.filter(j => j.statut === 'RETARD').length,
-    absents: historique.jours.filter(j => j.statut === 'ABSENT').length,
-    conges: historique.jours.filter(j => j.statut === 'EN_CONGE').length,
-    teletravail: historique.jours.filter(j => j.statut === 'TELETRAVAIL').length,
-    feries: historique.jours.filter(j => j.statut === 'JOUR_FERIE').length,
-    totalRetardMin: historique.jours.reduce((s, j) => s + (j.retardMinutes || 0), 0),
-    totalActifMin: historique.jours.reduce((s, j) => s + (j.tempsActifMinutes || 0), 0),
-    totalInactifMin: historique.jours.reduce((s, j) => s + (j.tempsInactifMinutes || 0), 0),
+    totalJours: historique.jours.filter(j => j.date <= todayStr).length,
+    presents: historique.jours.filter(j => j.statut === 'PRESENT' && j.date <= todayStr).length,
+    retards: historique.jours.filter(j => j.statut === 'RETARD' && j.date <= todayStr).length,
+    absents: historique.jours.filter(j => j.statut === 'ABSENT' && j.date <= todayStr).length,
+    conges: historique.jours.filter(j => j.statut === 'EN_CONGE' && j.date <= todayStr).length,
+    teletravail: historique.jours.filter(j => j.statut === 'TELETRAVAIL' && j.date <= todayStr).length,
+    feries: historique.jours.filter(j => j.statut === 'JOUR_FERIE' && j.date <= todayStr).length,
+    totalRetardMin: historique.jours.filter(j => j.date <= todayStr).reduce((s, j) => s + (j.retardMinutes || 0), 0),
+    totalActifMin: historique.jours.filter(j => j.date <= todayStr).reduce((s, j) => s + (j.tempsActifMinutes || 0), 0),
+    totalInactifMin: historique.jours.filter(j => j.date <= todayStr).reduce((s, j) => s + (j.tempsInactifMinutes || 0), 0),
   } : null;
 
   const isWeekend = (dateStr: string) => {
@@ -279,11 +284,11 @@ const HistoriqueAgentPage: React.FC = () => {
 
   const filteredJours = useMemo(() => {
     const jours = (historique?.jours || []).filter(
-      (jour) => !isWeekend(jour.date) && jour.statut !== 'JOUR_FERIE'
+      (jour) => !isWeekend(jour.date) && jour.statut !== 'JOUR_FERIE' && jour.date <= todayStr
     );
     if (!filterStatut) return jours;
     return jours.filter((jour) => jour.statut === filterStatut);
-  }, [historique, filterStatut]);
+  }, [historique, filterStatut, todayStr]);
 
   const totalPages = Math.max(1, Math.ceil(filteredJours.length / pageSize));
   const paginatedJours = filteredJours.slice((page - 1) * pageSize, page * pageSize);
@@ -481,7 +486,7 @@ const HistoriqueAgentPage: React.FC = () => {
             </div>
           )}
 
-          {filteredJours.length > 0 && (
+          {filteredJours.length > 8 && (
             <div className="flex flex-col gap-3 rounded-xl border border-gray-200 bg-white px-4 py-3 shadow-sm dark:border-gray-700 dark:bg-gray-800 sm:flex-row sm:items-center sm:justify-between">
               <p className="text-sm text-gray-500 dark:text-gray-400">
                 Affichage de <span className="font-medium text-gray-700 dark:text-gray-200">{(page - 1) * pageSize + 1}</span>

@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
+import { motion } from 'framer-motion';
 import {
   HiOutlineCalendar,
   HiOutlineChevronLeft,
@@ -16,6 +17,7 @@ import { documentEmployeService } from '../api/documentEmployeService';
 import { employeService } from '../api/employeService';
 import { validationService } from '../api/validationService';
 import { useAuth } from '../context/AuthContext';
+import { GradientRhCard } from '../components/ui/GradientRhCard';
 import {
   CalendrierJour,
   DecisionValidation,
@@ -321,57 +323,68 @@ const DashboardPage: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen space-y-10 bg-gray-50/30 px-4 py-8 font-sans dark:bg-gray-900/20 lg:px-8 lg:py-10">
-      <section
-        className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-white via-brand-50/30 to-brand-100/50 px-8 py-12 shadow-xl dark:bg-gradient-to-br dark:from-gray-950 dark:via-gray-900 dark:to-black dark:shadow-2xl lg:px-12 lg:py-16"
+    <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', gap: '28px', paddingBottom: '48px' }}>
+      <motion.section
+        initial={{ opacity: 0, y: 22 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.52, ease: 'easeOut' }}
         aria-label="Banniere d'accueil RH"
+        className="dashboard-hero-card"
+        style={{ position: 'relative', overflow: 'hidden', margin: '24px 24px 0', borderRadius: '24px', padding: 'clamp(36px, 6vw, 56px) clamp(28px, 5vw, 56px)' }}
       >
-        <div className="pointer-events-none absolute right-0 top-0 -mr-20 -mt-20 h-[400px] w-[400px] rounded-full bg-brand-500/10 blur-[100px] dark:bg-brand-500/20" />
-        <div className="pointer-events-none absolute bottom-0 left-0 -mb-20 -ml-20 h-[300px] w-[300px] rounded-full bg-indigo-500/10 blur-[80px] dark:bg-indigo-500/20" />
-        <div className="pointer-events-none absolute inset-0 bg-[url('/noise.png')] opacity-[0.03] mix-blend-overlay dark:opacity-[0.03]" />
+        {/* Glow spot haut-droite */}
+        <div style={{ position: 'absolute', right: '-80px', top: '-80px', width: '400px', height: '400px', borderRadius: '50%', background: 'rgba(104,59,119,0.12)', filter: 'blur(80px)', pointerEvents: 'none' }} />
+        {/* Glow spot bas-gauche */}
+        <div style={{ position: 'absolute', left: '-60px', bottom: '-60px', width: '300px', height: '300px', borderRadius: '50%', background: 'rgba(104,59,119,0.07)', filter: 'blur(70px)', pointerEvents: 'none' }} />
 
-        <div className="relative z-10 flex flex-col justify-between gap-8 lg:flex-row lg:items-end">
-          <div className="max-w-2xl">
-            <p className="mb-3 flex items-center gap-2 text-sm font-medium uppercase tracking-wide text-brand-600 dark:text-brand-400">
-              <HiOutlineLightningBolt size={18} />
+        <div style={{ position: 'relative', zIndex: 1, display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) auto', gap: '32px', alignItems: 'end' }}>
+          <div>
+            <p style={{ margin: '0 0 14px', color: '#683b77', fontSize: '13px', fontWeight: 600, letterSpacing: '0.1em', textTransform: 'uppercase', display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <HiOutlineLightningBolt size={15} />
               {heroDateText}
             </p>
-            <h1 className="text-4xl font-extrabold leading-tight tracking-tight text-gray-900 dark:text-white lg:text-5xl">
-              Bonjour, <span className="bg-gradient-to-r from-brand-600 to-brand-400 bg-clip-text text-transparent dark:from-brand-400 dark:to-brand-200">{displayName}</span>
+            <h1 className="dashboard-hero-title" style={{ margin: 0, fontSize: 'clamp(26px, 4vw, 44px)', fontWeight: 800, letterSpacing: '-0.025em', lineHeight: 1.12 }}>
+              Bonjour,{' '}
+              <span style={{ background: 'linear-gradient(90deg, #683b77, #ab78c3)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}>{displayName}</span>
+              {' '}👋
             </h1>
-            <p className="mt-4 text-lg leading-relaxed text-gray-600 dark:text-gray-400">
+            <p className="dashboard-hero-subtitle" style={{ margin: '14px 0 0', fontSize: '15px', lineHeight: 1.65 }}>
               Bienvenue sur votre espace RH. Suivez vos demandes, documents et actions prioritaires d'un seul coup d'oeil.
             </p>
 
-            <div className="group relative mt-8 max-w-md">
-              <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-4">
-                <HiOutlineSearch className="text-gray-400 transition-colors group-focus-within:text-brand-500 dark:group-focus-within:text-brand-400" size={20} />
-              </div>
+            <div style={{ position: 'relative', marginTop: '28px', maxWidth: '440px' }}>
+              <HiOutlineSearch style={{ position: 'absolute', left: '18px', top: '50%', transform: 'translateY(-50%)', color: '#9ca3af', pointerEvents: 'none', zIndex: 1 }} size={18} />
               <input
                 type="text"
                 placeholder="Rechercher une demande, un document..."
-                className="w-full rounded-full border border-gray-200 bg-white/70 py-3.5 pl-12 pr-6 text-gray-900 placeholder-gray-400 backdrop-blur-md transition-all focus:bg-white focus:outline-none focus:ring-2 focus:ring-brand-500/50 dark:border-white/10 dark:bg-white/5 dark:text-white dark:placeholder-gray-500 dark:focus:bg-white/10"
+                className="dashboard-hero-search"
+                style={{ width: '100%', height: '50px', borderRadius: '9999px', fontSize: '14px', padding: '0 24px 0 48px', outline: 'none', boxSizing: 'border-box', fontFamily: 'inherit', transition: 'all 0.2s' }}
                 aria-label="Recherche principale RH"
+                onFocus={e => { e.target.style.boxShadow = '0 0 0 3px rgba(104,59,119,0.25)'; }}
+                onBlur={e => { e.target.style.boxShadow = 'none'; }}
               />
             </div>
           </div>
 
-          <div className="flex flex-wrap gap-4 lg:gap-6">
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '12px', alignSelf: 'end' }}>
             {heroStats.map((stat, index) => (
-              <div
+              <motion.div
                 key={stat.label}
-                className="flex min-w-[140px] flex-col justify-center rounded-2xl border border-gray-200 bg-white/70 px-6 py-5 backdrop-blur-md transition-colors hover:bg-white dark:border-white/10 dark:bg-white/5 dark:hover:bg-white/10"
-                style={{ animation: `fadeUp 0.5s ease-out ${index * 0.1}s forwards` }}
+                initial={{ opacity: 0, y: 16 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.45, delay: 0.15 + index * 0.08 }}
+                className="dashboard-hero-stat"
+                style={{ width: '150px', borderRadius: '16px', padding: '18px 22px' }}
               >
-                <strong className="mb-1 text-3xl font-bold text-gray-900 dark:text-white">{stat.value}</strong>
-                <span className="text-xs font-medium uppercase tracking-widest text-gray-500 dark:text-gray-400">{stat.label}</span>
-              </div>
+                <strong className="dashboard-hero-stat-value" style={{ display: 'block', fontSize: '26px', fontWeight: 800, lineHeight: 1 }}>{stat.value}</strong>
+                <span className="dashboard-hero-stat-label" style={{ display: 'block', marginTop: '7px', fontSize: '11px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.06em', wordBreak: 'break-word' }}>{stat.label}</span>
+              </motion.div>
             ))}
           </div>
         </div>
-      </section>
+      </motion.section>
 
-      <section className="animate-fade-in-up space-y-5" style={{ animationDelay: '0.15s' }}>
+      <section className="animate-fade-in-up space-y-5" style={{ animationDelay: '0.15s', padding: '0 24px' }}>
         <div className="flex items-center justify-between">
           <h2 className="text-xl font-bold tracking-tight text-gray-800 dark:text-white">Focus du jour</h2>
         </div>
@@ -431,7 +444,7 @@ const DashboardPage: React.FC = () => {
         )}
       </section>
 
-      <div className="grid grid-cols-1 gap-8 xl:grid-cols-3">
+      <div className="grid grid-cols-1 gap-8 xl:grid-cols-3" style={{ padding: '0 24px' }}>
         <section className="animate-fade-in-up space-y-5 xl:col-span-2" style={{ animationDelay: '0.2s' }}>
           <div className="flex items-center justify-between">
             <h2 className="text-xl font-bold tracking-tight text-gray-800 dark:text-white">Mes dossiers RH recents</h2>
@@ -446,55 +459,30 @@ const DashboardPage: React.FC = () => {
 
           <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
             {!loading && recentRhCards.length === 0 ? (
-              <article className="col-span-full flex flex-col items-center justify-center rounded-3xl border border-gray-100 bg-white p-12 text-center dark:border-gray-700/50 dark:bg-gray-800">
-                <span className="mb-4 text-5xl opacity-50">📁</span>
-                <h3 className="mb-2 text-lg font-bold text-gray-800 dark:text-white">Aucun element recent</h3>
-                <p className="max-w-xs text-sm text-gray-500 dark:text-gray-400">
+              <div className="col-span-full flex flex-col items-center justify-center rounded-3xl p-12 text-center"
+                style={{ background: '#0e131f', border: '1px solid rgba(171,120,195,0.15)' }}>
+                <h3 className="mb-2 text-lg font-bold text-white">Aucun element recent</h3>
+                <p className="max-w-xs text-sm" style={{ color: 'rgba(255,255,255,0.45)' }}>
                   Vos demandes, documents et jalons RH s'afficheront ici des qu'ils seront disponibles.
                 </p>
-              </article>
+              </div>
             ) : (
               recentRhCards.map((card, index) => (
-                <article
+                <GradientRhCard
                   key={card.id}
-                  className="group relative flex cursor-pointer flex-col overflow-hidden rounded-3xl border border-gray-100 bg-white p-6 transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl hover:shadow-gray-200/50 dark:border-gray-700/50 dark:bg-gray-800 dark:hover:shadow-black/20"
-                  style={{ animation: `fadeUp 0.5s ease-out ${0.2 + index * 0.1}s forwards` }}
+                  title={card.title}
+                  status={card.status}
+                  meta={card.meta}
+                  badges={card.badges}
                   onClick={() => navigate(card.path)}
-                >
-                  <div className="absolute left-0 right-0 top-0 h-1" style={{ background: card.gradient }} />
-
-                  <header className="mb-4 flex items-center justify-between">
-                    <span className="rounded-full bg-gray-100 px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-gray-600 dark:bg-gray-700 dark:text-gray-300">
-                      {card.status}
-                    </span>
-                    <span className="text-2xl transition-transform duration-300 group-hover:scale-110" aria-hidden="true">
-                      {card.emoji}
-                    </span>
-                  </header>
-
-                  <div className="flex-1">
-                    <h3 className="text-lg font-bold leading-snug text-gray-900 transition-colors group-hover:text-brand-500 dark:text-white">
-                      {card.title}
-                    </h3>
-                    <p className="mt-2 text-xs font-medium text-gray-400 dark:text-gray-500">{card.meta}</p>
-                  </div>
-
-                  <footer className="mt-6 flex items-center justify-between border-t border-gray-50 pt-4 dark:border-gray-700/50">
-                    <div className="flex -space-x-2" aria-label="Badges">
-                      {card.badges.map((badge, badgeIndex) => (
-                        <div
-                          key={`${card.id}-${badge}-${badgeIndex}`}
-                          className="flex h-8 w-8 items-center justify-center rounded-full border-2 border-white bg-gray-100 text-[10px] font-bold text-gray-600 shadow-sm dark:border-gray-800 dark:bg-gray-700 dark:text-gray-300"
-                        >
-                          {badge.slice(0, 2).toUpperCase()}
-                        </div>
-                      ))}
-                    </div>
-                    <span className="translate-x-2 text-xs font-bold text-brand-500 opacity-0 transition-all duration-300 group-hover:translate-x-0 group-hover:opacity-100">
-                      Ouvrir →
-                    </span>
-                  </footer>
-                </article>
+                  variant={
+                    card.id.startsWith('ferie-')
+                      ? 'ferie'
+                      : card.id.startsWith('doc-')
+                      ? 'document'
+                      : 'default'
+                  }
+                />
               ))
             )}
           </div>
@@ -624,6 +612,55 @@ const DashboardPage: React.FC = () => {
       </div>
 
       <style>{`
+        /* ── Dashboard hero card ── */
+        .dashboard-hero-card {
+          background: linear-gradient(135deg, #ffffff 0%, rgba(250,245,255,0.5) 50%, rgba(237,225,255,0.65) 100%);
+          box-shadow: 0 8px 32px rgba(0,0,0,0.07), 0 2px 8px rgba(0,0,0,0.04);
+        }
+        .dark .dashboard-hero-card {
+          background: linear-gradient(135deg, #030712 0%, #111827 55%, #0d1117 100%) !important;
+          box-shadow: 0 20px 60px rgba(0,0,0,0.45) !important;
+        }
+
+        /* ── Hero text ── */
+        .dashboard-hero-title { color: #1a1814; }
+        .dark .dashboard-hero-title { color: #f9fafb; }
+        .dashboard-hero-subtitle { color: #6b7280; }
+        .dark .dashboard-hero-subtitle { color: #9ca3af; }
+
+        /* ── Hero search ── */
+        .dashboard-hero-search {
+          background: rgba(255,255,255,0.72);
+          border: 1px solid #e5e7eb;
+          color: #1a1814;
+          backdrop-filter: blur(8px);
+        }
+        .dashboard-hero-search::placeholder { color: #9ca3af; }
+        .dark .dashboard-hero-search {
+          background: rgba(255,255,255,0.06) !important;
+          border-color: rgba(255,255,255,0.12) !important;
+          color: #f9fafb !important;
+        }
+        .dark .dashboard-hero-search::placeholder { color: #6b7280; }
+
+        /* ── Hero stat cards ── */
+        .dashboard-hero-stat {
+          background: rgba(255,255,255,0.72);
+          border: 1px solid #e5e7eb;
+        }
+        .dashboard-hero-stat:hover { background: rgba(255,255,255,0.92); }
+        .dark .dashboard-hero-stat {
+          background: rgba(255,255,255,0.05) !important;
+          border-color: rgba(255,255,255,0.1) !important;
+        }
+        .dark .dashboard-hero-stat:hover { background: rgba(255,255,255,0.09) !important; }
+
+        .dashboard-hero-stat-value { color: #111827; }
+        .dark .dashboard-hero-stat-value { color: #f9fafb; }
+        .dashboard-hero-stat-label { color: #6b7280; }
+        .dark .dashboard-hero-stat-label { color: #9ca3af; }
+
+        /* ── Animations ── */
         @keyframes fadeUp {
           from { opacity: 0; transform: translateY(15px); }
           to { opacity: 1; transform: translateY(0); }
@@ -631,6 +668,9 @@ const DashboardPage: React.FC = () => {
         .animate-fade-in-up {
           opacity: 0;
           animation: fadeUp 0.6s ease-out forwards;
+        }
+        @media (max-width: 700px) {
+          .dashboard-hero-card > div > div:first-child { grid-template-columns: 1fr !important; }
         }
       `}</style>
     </div>

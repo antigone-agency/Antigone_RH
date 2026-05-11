@@ -12,5 +12,8 @@ WORKDIR /app
 COPY --from=build /app/target/*.jar app.jar
 RUN mkdir -p uploads/justificatifs uploads/images uploads/documents uploads/agent
 COPY uploads/agent/AgentDesktop-Setup.exe uploads/agent/
+RUN addgroup -S appgroup && adduser -S appuser -G appgroup \
+    && chown -R appuser:appgroup /app
+USER appuser
 EXPOSE 8080
 ENTRYPOINT ["java", "-jar", "app.jar"]

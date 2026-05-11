@@ -22,7 +22,11 @@ const store = new Store({
     toleranceRetardMinutes: 10,
     heureDebutTravail: '09:00',
     heureFinTravail: '18:00',
+    pauseDebutMidi: null,
+    pauseFinMidi: null,
     joursTravail: 'LUNDI,MARDI,MERCREDI,JEUDI,VENDREDI',
+    joursFeries: [],          // ['2026-01-01', '2026-05-01', ...]
+    lastConfigFetchDate: null, // 'YYYY-MM-DD' — pour fetch 1x/jour
     // État
     isLoggedIn: false,
     clockedIn: false,
@@ -38,34 +42,52 @@ const JOURS_MAP = {
 };
 
 /**
- * Vérifie si on est dans les horaires de travail (jour + heure)
+ * Vérifie si on est dans les horaires de travail (jour + heure).
+ * Prend en compte :
+ *   - les jours de travail configurés
+ *   - les jours fériés (liste synchronisée depuis le serveur)
+ *   - la pause déjeuner (on continue à heartbeater, mais isWorkingTime = false pendant la pause)
+ *   - une marge de 30 min après la fin de shift pour le clock-out automatique
  */
 function isWorkingTime() {
   const now = new Date();
   const currentDay = now.getDay(); // 0=Dim, 1=Lun...
-  
-  // Vérifier le jour de travail
+
+  // 1. Vérifier le jour de travail
   const joursTravail = store.get('joursTravail') || 'LUNDI,MARDI,MERCREDI,JEUDI,VENDREDI';
   const joursArray = joursTravail.split(',').map(j => j.trim().toUpperCase());
   const joursNumeros = joursArray.map(j => JOURS_MAP[j]).filter(n => n !== undefined);
-  
-  if (!joursNumeros.includes(currentDay)) {
-    return false; // Ce n'est pas un jour de travail
-  }
-  
-  // Vérifier l'heure de travail
+  if (!joursNumeros.includes(currentDay)) return false;
+
+  // 2. Vérifier les jours fériés
+  const joursFeries = store.get('joursFeries') || [];
+  const todayStr = now.toISOString().slice(0, 10); // 'YYYY-MM-DD'
+  if (joursFeries.includes(todayStr)) return false;
+
+  // 3. Vérifier l'heure de travail
   const heureDebut = store.get('heureDebutTravail') || '09:00';
   const heureFin = store.get('heureFinTravail') || '18:00';
-  
   const [debutH, debutM] = heureDebut.split(':').map(Number);
   const [finH, finM] = heureFin.split(':').map(Number);
-  
   const currentMinutes = now.getHours() * 60 + now.getMinutes();
   const debutMinutes = debutH * 60 + (debutM || 0);
   const finMinutes = finH * 60 + (finM || 0);
-  
-  // Ajouter 30 minutes de marge après la fin pour le clock-out
-  return currentMinutes >= debutMinutes && currentMinutes <= (finMinutes + 30);
+
+  // Hors horaires
+  if (currentMinutes < debutMinutes || currentMinutes > finMinutes + 30) return false;
+
+  // 4. Vérifier la pause déjeuner (optionnel)
+  const pauseDebut = store.get('pauseDebutMidi');
+  const pauseFin = store.get('pauseFinMidi');
+  if (pauseDebut && pauseFin) {
+    const [pdH, pdM] = pauseDebut.split(':').map(Number);
+    const [pfH, pfM] = pauseFin.split(':').map(Number);
+    const pdMin = pdH * 60 + (pdM || 0);
+    const pfMin = pfH * 60 + (pfM || 0);
+    if (currentMinutes >= pdMin && currentMinutes < pfMin) return false;
+  }
+
+  return true;
 }
 
 function get(key) {

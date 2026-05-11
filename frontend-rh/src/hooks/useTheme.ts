@@ -16,8 +16,16 @@ interface ThemeContextType {
 
 // Cookies partagés entre tous les ports du même domaine (contrairement à localStorage)
 export const getSharedCookie = (name: string): string | null => {
-  const match = document.cookie.match(new RegExp('(^| )' + name + '=([^;]+)'));
-  return match ? decodeURIComponent(match[2]) : null;
+  const cookies = document.cookie.split(';');
+  for (const cookie of cookies) {
+    const eqIdx = cookie.indexOf('=');
+    if (eqIdx === -1) continue;
+    const key = cookie.slice(0, eqIdx).trim();
+    if (key === name) {
+      return decodeURIComponent(cookie.slice(eqIdx + 1).trim());
+    }
+  }
+  return null;
 };
 
 export const setSharedCookie = (name: string, value: string) => {

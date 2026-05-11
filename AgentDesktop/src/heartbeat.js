@@ -5,6 +5,7 @@ const api = require('./api');
 const network = require('./network');
 const activity = require('./activity');
 const config = require('./config');
+const popupManager = require('./popup-manager');
 
 let heartbeatInterval = null;
 let configRefreshInterval = null;
@@ -23,11 +24,14 @@ function start() {
   // Puis toutes les 60 secondes
   heartbeatInterval = setInterval(sendHeartbeat, 60000);
   
-  // Rafraîchir la config du serveur toutes les 15 minutes
+  // Vérifier toutes les heures si la config doit être rafraîchie (nouveau jour = nouveau fetch)
   if (configRefreshInterval) clearInterval(configRefreshInterval);
-  configRefreshInterval = setInterval(refreshConfig, 15 * 60 * 1000);
+  configRefreshInterval = setInterval(refreshConfig, 60 * 60 * 1000); // 1h (fetchConfig gère le "déjà fait aujourd'hui")
+
+  // Planifier la popup de fin de journée (si déjà clocké depuis un restart)
+  popupManager.scheduleClockOutValidation();
   
-  console.log('[Heartbeat] Service démarré - intervalle 60s, config refresh 15min');
+  console.log('[Heartbeat] Service démarré - intervalle 60s, config refresh 1h (1x/jour effectif)');
 }
 
 // Arrêter le heartbeat
@@ -87,6 +91,8 @@ async function sendHeartbeat() {
           config.set('clockedIn', true);
           clockedInToday = true;
           lastClockInDate = today;
+          // Planifier la popup de fin de journée après le clock-in
+          popupManager.scheduleClockOutValidation();
         }
       } else {
         clockedInToday = true;

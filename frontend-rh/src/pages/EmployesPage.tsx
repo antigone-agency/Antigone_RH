@@ -1,7 +1,8 @@
 // ...existing code...
 
 import React, { useState, useEffect, useRef } from 'react';
-import { HiOutlinePlus, HiOutlineSearch, HiOutlinePencil, HiOutlineTrash, HiOutlinePhotograph, HiOutlineEye, HiOutlineDownload, HiOutlineFilter, HiOutlineChartBar, HiOutlineX, HiOutlineAcademicCap, HiOutlineDocumentText, HiOutlineUpload, HiOutlineExternalLink, HiOutlineCheck, HiOutlineChevronDown, HiOutlineChevronLeft, HiOutlineChevronRight, HiOutlineCalendar } from 'react-icons/hi';
+import { HiOutlinePlus, HiOutlineSearch, HiOutlinePencil, HiOutlineTrash, HiOutlinePhotograph, HiOutlineEye, HiOutlineDownload, HiOutlineFilter, HiOutlineChartBar, HiOutlineX, HiOutlineAcademicCap, HiOutlineDocumentText, HiOutlineUpload, HiOutlineExternalLink, HiOutlineCheck, HiOutlineChevronDown, HiOutlineChevronLeft, HiOutlineChevronRight, HiOutlineCalendar, HiOutlineViewGrid, HiOutlineTable } from 'react-icons/hi';
+import { motion } from 'framer-motion';
 
 // ─── Custom styled select ───────────────────────────────────────────────────
 interface SelectOption { value: string; label: string; }
@@ -298,6 +299,7 @@ const EmployesPage: React.FC = () => {
   const [editingEmploye, setEditingEmploye] = useState<Employe | null>(null);
   const [loading, setLoading] = useState(true);
   const [viewingEmploye, setViewingEmploye] = useState<Employe | null>(null);
+  const [viewMode, setViewMode] = useState<'table' | 'card'>('card');
    const [page, setPage] = useState<number>(1);
   const [pageSize, setPageSize] = useState<number>(6);
  
@@ -827,6 +829,33 @@ const EmployesPage: React.FC = () => {
           <Button variant="ghost" onClick={handleExportCsv} title="Exporter CSV">
             <HiOutlineDownload size={18} /> Exporter
           </Button>
+          {/* View mode toggle */}
+          <div className="flex items-center rounded-lg border border-gray-200 dark:border-gray-700 overflow-hidden">
+            <button
+              type="button"
+              onClick={() => setViewMode('table')}
+              title="Vue tableau"
+              className={`flex items-center justify-center h-9 w-9 transition-colors ${
+                viewMode === 'table'
+                  ? 'bg-[#683b77] text-white'
+                  : 'bg-white dark:bg-gray-800 text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700'
+              }`}
+            >
+              <HiOutlineTable size={17} />
+            </button>
+            <button
+              type="button"
+              onClick={() => setViewMode('card')}
+              title="Vue cartes"
+              className={`flex items-center justify-center h-9 w-9 transition-colors ${
+                viewMode === 'card'
+                  ? 'bg-[#683b77] text-white'
+                  : 'bg-white dark:bg-gray-800 text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700'
+              }`}
+            >
+              <HiOutlineViewGrid size={17} />
+            </button>
+          </div>
           <Button onClick={() => { resetForm(); setEditingEmploye(null); setShowModal(true); }}>
             <HiOutlinePlus size={18} /> Ajouter un employé
           </Button>
@@ -877,34 +906,6 @@ const EmployesPage: React.FC = () => {
             </button>
           )}
           <span className="text-theme-sm text-gray-400">{filteredEmployes.length} résultat(s)</span>
-                {/* Pagination controls */}
-                <div className="flex items-center gap-2 ml-auto">
-                  <span className="text-theme-xs text-gray-500">Page</span>
-                  <button
-                    className="px-2 py-1 rounded border border-gray-300 bg-white text-theme-xs disabled:opacity-50"
-                    onClick={() => setPage(page - 1)}
-                    disabled={page === 1}
-                  >
-                    Précédent
-                  </button>
-                  <span className="text-theme-xs text-gray-700">{page} / {totalPages || 1}</span>
-                  <button
-                    className="px-2 py-1 rounded border border-gray-300 bg-white text-theme-xs disabled:opacity-50"
-                    onClick={() => setPage(page + 1)}
-                    disabled={page === totalPages || totalPages === 0}
-                  >
-                    Suivant
-                  </button>
-                  <select
-                    className="ml-2 px-2 py-1 rounded border border-gray-300 text-theme-xs"
-                    value={pageSize}
-                    onChange={e => { setPageSize(Number(e.target.value)); setPage(1); }}
-                  >
-                    {[6, 10, 20, 50, 100].map(size => (
-                      <option key={size} value={size}>{size} / page</option>
-                    ))}
-                  </select>
-                </div>
         </div>
 
         {showFilters && (
@@ -965,11 +966,151 @@ const EmployesPage: React.FC = () => {
         )}
       </div>
 
-      {/* Table */}
+      {/* Table / Card */}
       {loading ? (
         <div className="text-center py-12 text-gray-500 dark:text-gray-400">Chargement...</div>
+      ) : viewMode === 'card' ? (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5 pt-12">
+          {paginatedEmployes.map((emp, idx) => {
+            const avatarBgs = ['bg-violet-500', 'bg-purple-500', 'bg-fuchsia-600', 'bg-indigo-500', 'bg-pink-500'];
+            const avatarBg = avatarBgs[(emp.nom?.length ?? 0) % avatarBgs.length];
+            const baseApi = window.location.hostname === 'localhost' ? 'http://localhost:8080' : 'https://rh-antigone.onrender.com';
+            return (
+              <motion.div
+                key={emp.id}
+                initial={{ opacity: 0, y: 16 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.3, delay: idx * 0.04, ease: 'easeOut' }}
+                className="group mt-11 [perspective:1000px]"
+              >
+                <div
+                  className="relative flex flex-col rounded-[20px] bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 shadow-md [transform-style:preserve-3d] transition-all duration-500 ease-in-out group-hover:[box-shadow:0_20px_60px_-10px_rgba(104,59,119,0.45),0_8px_24px_-4px_rgba(104,59,119,0.25)] group-hover:[transform:rotate3d(1,1,0,12deg)]"
+                  style={{ willChange: 'transform' }}
+                >
+                  {/* Avatar */}
+                  <div className="absolute -top-11 left-1/2 -translate-x-1/2 w-[88px] h-[88px] rounded-full overflow-hidden border-4 border-white dark:border-gray-900 shadow-md z-10">
+                    {emp.imageUrl ? (
+                      <img
+                        src={`${baseApi}${emp.imageUrl}`}
+                        alt=""
+                        className="w-full h-full object-cover"
+                        onError={(e) => {
+                          e.currentTarget.style.display = 'none';
+                          const p = e.currentTarget.parentElement;
+                          if (p) {
+                            p.className += ` ${avatarBg}`;
+                            p.innerHTML = `<span class="text-white text-[30px] font-medium flex items-center justify-center w-full h-full">${(emp.prenom?.charAt(0) ?? emp.nom?.charAt(0) ?? '?').toUpperCase()}</span>`;
+                          }
+                        }}
+                      />
+                    ) : (
+                      <div className={`w-full h-full flex items-center justify-center text-white text-[30px] font-medium ${avatarBg}`}>
+                        {(emp.prenom?.charAt(0) ?? emp.nom?.charAt(0) ?? '?').toUpperCase()}
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="flex flex-col px-5 pt-14 pb-5 gap-4">
+                    {/* Name + poste */}
+                    <div className="text-center">
+                      <h3 className="text-[17px] font-bold text-gray-900 dark:text-white">{emp.prenom} {emp.nom}</h3>
+                      <p className="text-[12px] text-gray-500 dark:text-gray-400 mt-0.5">{emp.poste || emp.departement || 'Employé'}</p>
+                    </div>
+
+                    {/* Stats row */}
+                    <div className="flex rounded-[14px] bg-gray-50 dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700 overflow-hidden">
+                      <div className="flex-1 py-3 px-1 text-center border-r border-gray-200 dark:border-gray-700">
+                        <div className="text-[12px] font-bold text-gray-900 dark:text-white truncate leading-tight px-1">{emp.departement || '—'}</div>
+                        <div className="text-[10px] text-gray-400 mt-0.5">Département</div>
+                      </div>
+                      <div className="flex-1 py-3 px-1 text-center border-r border-gray-200 dark:border-gray-700">
+                        <div className="text-[12px] font-bold text-gray-900 dark:text-white truncate leading-tight px-1">{emp.typeContrat || '—'}</div>
+                        <div className="text-[10px] text-gray-400 mt-0.5">Contrat</div>
+                      </div>
+                      <div className="flex-1 py-3 px-1 text-center">
+                        <div className="text-[13px] font-bold text-[#683b77]">{emp.soldeConge ?? 0}j</div>
+                        <div className="text-[10px] text-gray-400 mt-0.5">Congés</div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Hover actions */}
+                  <div className="absolute top-3 right-3 flex gap-1 opacity-0 group-hover:opacity-100 transition-all z-20">
+                    <button
+                      onClick={() => handleViewDetails(emp)}
+                      className="p-1.5 rounded-lg bg-gray-100 dark:bg-gray-800 text-gray-500 hover:text-blue-500 transition-all duration-300 group-hover:scale-110 group-hover:-translate-y-1"
+                      style={{ transitionDelay: '50ms' }}
+                    >
+                      <HiOutlineEye size={15} />
+                    </button>
+                    <button
+                      onClick={() => handleEdit(emp)}
+                      className="p-1.5 rounded-lg bg-gray-100 dark:bg-gray-800 text-gray-500 hover:text-[#683b77] transition-all duration-300 group-hover:scale-110 group-hover:-translate-y-1"
+                      style={{ transitionDelay: '100ms' }}
+                    >
+                      <HiOutlinePencil size={15} />
+                    </button>
+                    <button
+                      onClick={() => handleDelete(emp.id)}
+                      className="p-1.5 rounded-lg bg-gray-100 dark:bg-gray-800 text-gray-500 hover:text-red-500 transition-all duration-300 group-hover:scale-110 group-hover:-translate-y-1"
+                      style={{ transitionDelay: '150ms' }}
+                    >
+                      <HiOutlineTrash size={15} />
+                    </button>
+                  </div>
+                </div>
+              </motion.div>
+            );
+          })}
+        </div>
       ) : (
         <DataTable columns={columns} data={paginatedEmployes} />
+      )}
+
+      {/* Pagination */}
+      {!loading && totalPages > 1 && (
+        <div className="flex flex-col gap-3 rounded-xl border border-gray-200 bg-white px-4 py-3 shadow-sm dark:border-gray-700 dark:bg-gray-800 sm:flex-row sm:items-center sm:justify-between">
+          <p className="text-sm text-gray-500 dark:text-gray-400">
+            Affichage de{' '}
+            <span className="font-medium text-gray-700 dark:text-gray-200">{(page - 1) * pageSize + 1}</span>
+            {' '}à{' '}
+            <span className="font-medium text-gray-700 dark:text-gray-200">{Math.min(page * pageSize, filteredEmployes.length)}</span>
+            {' '}sur{' '}
+            <span className="font-medium text-gray-700 dark:text-gray-200">{filteredEmployes.length}</span> employé{filteredEmployes.length > 1 ? 's' : ''}
+          </p>
+          <div className="flex items-center gap-2 self-end sm:self-auto">
+            <button
+              type="button"
+              onClick={() => setPage((p) => Math.max(1, p - 1))}
+              disabled={page === 1}
+              className="inline-flex items-center gap-2 rounded-lg border border-gray-300 px-3 py-2 text-sm font-medium text-gray-600 transition hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700"
+            >
+              <HiOutlineChevronLeft size={16} />
+              Précédent
+            </button>
+            <span className="min-w-[78px] text-center text-sm font-medium text-gray-700 dark:text-gray-200">
+              Page {page} / {Math.max(1, totalPages)}
+            </span>
+            <button
+              type="button"
+              onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+              disabled={page === totalPages || totalPages === 0}
+              className="inline-flex items-center gap-2 rounded-lg border border-gray-300 px-3 py-2 text-sm font-medium text-gray-600 transition hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700"
+            >
+              Suivant
+              <HiOutlineChevronRight size={16} />
+            </button>
+            <select
+              className="ml-2 rounded-lg border border-gray-300 px-2 py-2 text-sm text-gray-600 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
+              value={pageSize}
+              onChange={e => { setPageSize(Number(e.target.value)); setPage(1); }}
+            >
+              {[6, 10, 20, 50, 100].map(size => (
+                <option key={size} value={size}>{size} / page</option>
+              ))}
+            </select>
+          </div>
+        </div>
       )}
 
       {/* Modal */}

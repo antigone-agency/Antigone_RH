@@ -137,7 +137,16 @@ async function login(username, password) {
 }
 
 // Récupérer la configuration du serveur
+// Récupérer la configuration du serveur — appelé 1 fois par jour max
 async function fetchConfig() {
+  // Vérifier si on a déjà fetch aujourd'hui (pour éviter les appels inutiles)
+  const today = new Date().toISOString().slice(0, 10); // 'YYYY-MM-DD'
+  const lastFetch = config.get('lastConfigFetchDate');
+  if (lastFetch === today) {
+    console.log('[API] Config déjà à jour pour aujourd\'hui (' + today + ') — utilisation du cache');
+    return config.get('lastConfigSnapshot') || null;
+  }
+
   try {
     const client = getClient();
     const response = await client.get('/api/agent/config');
@@ -158,9 +167,24 @@ async function fetchConfig() {
     if (serverConfig.heureDebutTravail) config.set('heureDebutTravail', serverConfig.heureDebutTravail);
     if (serverConfig.heureFinTravail) config.set('heureFinTravail', serverConfig.heureFinTravail);
     if (serverConfig.joursTravail) config.set('joursTravail', serverConfig.joursTravail);
+    // Pauses déjeuner
+    config.set('pauseDebutMidi', serverConfig.pauseDebutMidi || null);
+    config.set('pauseFinMidi', serverConfig.pauseFinMidi || null);
+    // Jours fériés (tableau de strings 'YYYY-MM-DD')
+    if (Array.isArray(serverConfig.joursFeries)) {
+      config.set('joursFeries', serverConfig.joursFeries);
+    }
     
+    // Marquer la date du fetch et garder un snapshot
+    config.set('lastConfigFetchDate', today);
     config.set('lastConfigRefresh', new Date().toISOString());
-    console.log('[API] Config appliquée: SSID=' + config.get('reseauEntrepriseSsid') + ', Horaires=' + config.get('heureDebutTravail') + '-' + config.get('heureFinTravail') + ', Jours=' + config.get('joursTravail'));
+    config.set('lastConfigSnapshot', serverConfig);
+
+    console.log('[API] Config appliquée: SSID=' + config.get('reseauEntrepriseSsid') +
+      ', Horaires=' + config.get('heureDebutTravail') + '-' + config.get('heureFinTravail') +
+      ', Pause=' + config.get('pauseDebutMidi') + '-' + config.get('pauseFinMidi') +
+      ', Jours=' + config.get('joursTravail') +
+      ', JoursFériés=' + (config.get('joursFeries') || []).length);
     
     return serverConfig;
   } catch (error) {
@@ -223,11 +247,11 @@ async function sendEvent(eventType, ipAddress, ssid) {
       });
     });
     
-    console.log(`[API] Événement ${eventType} envoyé (SSID: ${ssid || 'N/A'}, IP: ${ipAddress || 'N/A'})`);
+    console.log('[API] Événement', eventType, 'envoyé (SSID:', ssid || 'N/A', ', IP:', ipAddress || 'N/A', ')');
     return true;
   } catch (error) {
     handleAuthFailure(error);
-    console.error(`[API] Erreur événement ${eventType}:`, error.message);
+    console.error('[API] Erreur événement', eventType + ':', error.message);
     return false;
   }
 }

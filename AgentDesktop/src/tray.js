@@ -95,32 +95,37 @@ function setStatus(status) {
   }
 }
 
-// Créer une icône simple programmatiquement (évite le besoin d'un fichier .ico)
+// Créer une icône tray adaptée à chaque plateforme
 function createTrayIcon() {
-  // Icône 16x16 simple en bleu  
-  const size = 16;
-  const canvas = nativeImage.createEmpty();
-  
-  // Utiliser un buffer RGBA pour créer une icône bleue simple
+  const platform = process.platform;
+  const size = platform === 'darwin' ? 22 : 16;
   const buffer = Buffer.alloc(size * size * 4);
+  const cx = size / 2, cy = size / 2, r = size / 2 - 1;
+
   for (let y = 0; y < size; y++) {
     for (let x = 0; x < size; x++) {
       const idx = (y * size + x) * 4;
-      // Créer un cercle bleu
-      const cx = size / 2, cy = size / 2, r = size / 2 - 1;
       const dist = Math.sqrt((x - cx) ** 2 + (y - cy) ** 2);
       if (dist <= r) {
-        buffer[idx] = 25;      // R
-        buffer[idx + 1] = 118;  // G (1976d2)
-        buffer[idx + 2] = 210;  // B
-        buffer[idx + 3] = 255;  // A
+        if (platform === 'darwin') {
+          // macOS : icône template blanche (le système adapte dark/light)
+          buffer[idx] = 255; buffer[idx + 1] = 255; buffer[idx + 2] = 255;
+        } else {
+          // Windows : bleu Antigone
+          buffer[idx] = 25; buffer[idx + 1] = 118; buffer[idx + 2] = 210;
+        }
+        buffer[idx + 3] = 255;
       } else {
-        buffer[idx + 3] = 0;   // Transparent
+        buffer[idx + 3] = 0;
       }
     }
   }
-  
-  return nativeImage.createFromBuffer(buffer, { width: size, height: size });
+
+  const icon = nativeImage.createFromBuffer(buffer, { width: size, height: size });
+  if (platform === 'darwin') {
+    icon.setTemplateImage(true); // Permet l'adaptation dark/light macOS
+  }
+  return icon;
 }
 
 function destroy() {

@@ -23,38 +23,46 @@ public class RoleService {
     private final PermissionRepository permissionRepository;
 
     private static final Map<String, String> PERMISSION_LABELS = Map.ofEntries(
-            Map.entry("VIEW_DASHBOARD", "Tableau de bord"),
-            Map.entry("VIEW_EMPLOYES", "Employés"),
-            Map.entry("VIEW_DEMANDES", "Demandes"),
-            Map.entry("VIEW_VALIDATIONS", "Validations"),
-            Map.entry("VIEW_PROJETS", "Projets"),
-            Map.entry("VIEW_EQUIPES", "Équipes"),
-            Map.entry("VIEW_TACHES", "Tâches"),
-            Map.entry("VIEW_REFERENTIELS", "Référentiels"),
-            Map.entry("VIEW_CALENDRIER", "Calendrier Entreprise"),
-            Map.entry("VIEW_COMPTES", "Comptes"),
-            Map.entry("VIEW_ROLES", "Rôles"),
-            Map.entry("VIEW_MONITORING", "Monitoring"),
-            Map.entry("VIEW_TOUS_PROJETS", "Tous les projets"),
-            Map.entry("VIEW_CALENDRIER_PROJETS", "Calendrier Tournage"),
-            Map.entry("VIEW_DASHBOARD_RH", "Dashboard RH"),
-            Map.entry("VIEW_MES_DEMANDES", "Mes demandes"),
-            Map.entry("VIEW_MES_PROJETS", "Mes projets"),
-            Map.entry("VIEW_MON_CALENDRIER", "Mon calendrier"),
+            // ── RH Administration ────────────────────────────────────────────
+            Map.entry("VIEW_DASHBOARD", "Tableau de bord RH — Vue générale des indicateurs et alertes"),
+            Map.entry("VIEW_EMPLOYES", "Employés — Consulter, créer et gérer les fiches employés"),
+            Map.entry("VIEW_DEMANDES", "Demandes RH — Voir et traiter toutes les demandes (congés, absences…)"),
+            Map.entry("VIEW_VALIDATIONS", "Validations — Approuver ou refuser les demandes soumises par les employés"),
+            Map.entry("VIEW_REFERENTIELS",
+                    "Référentiels — Gérer les listes de valeurs (postes, contrats, départements…)"),
+            Map.entry("VIEW_COMPTES", "Comptes utilisateurs — Créer et gérer les accès à l'application"),
+            Map.entry("VIEW_ROLES", "Rôles & Permissions — Définir les droits d'accès par rôle"),
+            Map.entry("VIEW_MONITORING",
+                    "Monitoring — Suivre la présence et l'activité des utilisateurs en temps réel"),
+            // ── Calendriers ─────────────────────────────────────────────────
+            Map.entry("VIEW_CALENDRIER", "Calendrier d'entreprise — Consulter les événements et jours fériés globaux"),
+            Map.entry("VIEW_CALENDRIER_PROJETS", "Calendrier de tournage — Planification des shootings et productions"),
+            Map.entry("VIEW_DEADLINES", "Calendrier des deadlines — Consulter les échéances des projets et tâches"),
+            Map.entry("VIEW_REUNIONS", "Réunions — Voir, créer et planifier les réunions d'équipe"),
+            // ── Projets (Administration) ─────────────────────────────────────
+            Map.entry("VIEW_PROJETS", "Projets — Accéder à la liste de tous les projets"),
+            Map.entry("VIEW_TOUS_PROJETS", "Projets — Voir tous les projets sans filtre (accès global)"),
+            Map.entry("VIEW_EQUIPES", "Équipes — Voir et gérer la composition des équipes projet"),
+            Map.entry("VIEW_TACHES", "Tâches — Consulter et gérer toutes les tâches"),
+            Map.entry("MANAGE_ALL_PROJETS",
+                    "Projets — Administration complète : créer, modifier, supprimer et gérer les tâches"),
+            Map.entry("VIEW_PROJETS_CREATE_TACHES",
+                    "Projets — Consultation uniquement et ajout de tâches sur les projets assignés"),
             // ── Clients ──────────────────────────────────────────────────────
-            Map.entry("VIEW_CLIENTS", "Clients - Voir"),
-            Map.entry("CREATE_CLIENT", "Clients - Créer"),
-            Map.entry("EDIT_CLIENT", "Clients - Modifier"),
-            Map.entry("DELETE_CLIENT", "Clients - Supprimer"),
-            // ── Projets ─────────────────────────────────────────────────────
-            Map.entry("MANAGE_ALL_PROJETS", "Projets - Gestion complète (Voir, Créer, Modifier, Supprimer, Tâches)"),
-            Map.entry("VIEW_PROJETS_CREATE_TACHES", "Projets - Consultation et Création de tâches"),
+            Map.entry("VIEW_CLIENTS", "Clients — Consulter la liste et le détail des clients"),
+            Map.entry("CREATE_CLIENT", "Clients — Ajouter un nouveau client"),
+            Map.entry("EDIT_CLIENT", "Clients — Modifier les informations d'un client existant"),
+            Map.entry("DELETE_CLIENT", "Clients — Supprimer définitivement un client"),
             // ── Media Plan ──────────────────────────────────────────────────
-            Map.entry("VIEW_MEDIA_PLAN", "Media Plan"),
-            Map.entry("VIEW_TOUS_MEDIA_PLAN", "Tous les Media Plan"),
-            // ── Deadlines & Réunions ─────────────────────────────────────
-            Map.entry("VIEW_DEADLINES", "Calendrier Deadlines"),
-            Map.entry("VIEW_REUNIONS", "Calendrier Réunions"));
+            Map.entry("VIEW_MEDIA_PLAN", "Média Plan — Voir et gérer ses propres médias plans"),
+            Map.entry("VIEW_TOUS_MEDIA_PLAN",
+                    "Média Plan — Voir tous les médias plans de tous les employés (vue globale)"),
+            // ── Espace personnel (employé) ───────────────────────────────────
+            Map.entry("VIEW_DASHBOARD_RH", "Mon tableau de bord — Vue personnelle des congés, documents et activité"),
+            Map.entry("VIEW_MES_DEMANDES", "Mes demandes — Soumettre et suivre ses propres demandes de congé/absence"),
+            Map.entry("VIEW_MES_PROJETS",
+                    "Mes projets — Voir uniquement les projets sur lesquels l'employé est assigné"),
+            Map.entry("VIEW_MON_CALENDRIER", "Mon calendrier — Consulter son agenda personnel et ses événements"));
 
     public List<RoleDTO> getAllRoles() {
         return roleRepository.findAll().stream()

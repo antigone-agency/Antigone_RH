@@ -112,13 +112,13 @@ app.whenReady().then(() => {
     showLoginWindow();
   }
 
-  // Auto-démarrage au boot Windows
+  // Auto-démarrage au boot (Windows + macOS)
   try {
-    app.setLoginItemSettings({
-      openAtLogin: true,
-      openAsHidden: true,
-      path: app.getPath('exe')
-    });
+    const loginSettings = { openAtLogin: true, openAsHidden: true };
+    if (process.platform === 'win32') {
+      loginSettings.path = app.getPath('exe');
+    }
+    app.setLoginItemSettings(loginSettings);
   } catch (e) {
     console.log('[Agent] Auto-start setup skipped:', e.message);
   }
@@ -248,38 +248,45 @@ function stopServices() {
 // ========================================
 function quitApp() {
   isQuitting = true;
-  if (config && config.get('clockedIn')) {
-    const network = require('./network');
-    network.getNetworkInfo().then(netInfo => {
-      return api.sendEvent('CLOCK_OUT', netInfo.localIP, netInfo.ssid);
-    }).then(() => {
-      config.set('clockedIn', false);
-    }).catch(() => {}).finally(() => {
-      stopServices();
-      if (trayManager) trayManager.destroy();
-      app.quit();
-    });
-  } else {
-    stopServices();
-    if (trayManager) trayManager.destroy();
-    app.quit();
-  }
+  // Déclenche before-quit qui gère le CLOCK_OUT et l'arrêt des services
+  app.quit();
 }
 
 app.on('window-all-closed', (e) => {
   if (!isQuitting) {
-    e.preventDefault();
+    e.preventDefault(); // Rester actif dans le tray même sans fenêtres
   }
 });
 
-app.on('before-quit', async () => {
-  if (config && config.get('clockedIn')) {
-    try {
-      const network = require('./network');
-      const netInfo = await network.getNetworkInfo();
-      await api.sendEvent('CLOCK_OUT', netInfo.localIP, netInfo.ssid);
-      config.set('clockedIn', false);
-    } catch (e) {}
+// macOS : clic sur l'icône dock → afficher le login si déconnecté
+app.on('activate', () => {
+  if (!config?.isLoggedIn()) {
+    showLoginWindow();
   }
-  stopServices();
+});
+
+// Sur macOS : gérer Cmd+Q (et toute fermeture externe)
+// before-quit NE supporte PAS async/await → on doit bloquer l'événement et relancer app.quit()
+let beforeQuitHandled = false;
+app.on('before-quit', (event) => {
+  if (beforeQuitHandled) return; // Éviter la boucle infinie
+  event.preventDefault();
+  beforeQuitHandled = true;
+
+  const doQuit = () => {
+    stopServices();
+    if (trayManager) trayManager.destroy();
+    app.quit(); // Relance before-quit → cette fois beforeQuitHandled=true → passe directement
+  };
+
+  if (config && config.get('clockedIn')) {
+    const network = require('./network');
+    network.getNetworkInfo()
+      .then(netInfo => api.sendEvent('CLOCK_OUT', netInfo.localIP, netInfo.ssid))
+      .then(() => { config.set('clockedIn', false); })
+      .catch(() => {})
+      .finally(doQuit);
+  } else {
+    doQuit();
+  }
 });

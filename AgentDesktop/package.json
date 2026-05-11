@@ -9,7 +9,10 @@
     "test:launch": "electron test-launch.js",
     "validate": "npm run test:modules",
     "build": "electron-builder --win",
-    "pack": "electron-builder --win --dir"
+    "build:mac": "electron-builder --mac",
+    "build:all": "electron-builder --win --mac",
+    "pack": "electron-builder --win --dir",
+    "pack:mac": "electron-builder --mac --dir"
   },
   "author": "Antigone RH",
   "license": "UNLICENSED",
@@ -38,6 +41,18 @@
           ]
         }
       ]
+    },
+    "mac": {
+      "target": [
+        {
+          "target": "dmg",
+          "arch": ["x64", "arm64"]
+        }
+      ],
+      "category": "public.app-category.business"
+    },
+    "dmg": {
+      "title": "Antigone RH Agent"
     },
     "nsis": {
       "oneClick": true,

@@ -15,5 +15,12 @@ contextBridge.exposeInMainWorld('agentDesktop', {
     ipcRenderer.on('set-timeout', handler);
     return () => ipcRenderer.removeListener('set-timeout', handler);
   },
-  sendPresenceResponse: (confirmed) => ipcRenderer.send('presence-response', confirmed)
+  sendPresenceResponse: (confirmed) => ipcRenderer.send('presence-response', confirmed),
+  // ── Popup fin de journée ─────────────────────────────────────────────────
+  onSetClockoutMode: (callback) => {
+    const handler = (_event, data) => callback(data);
+    ipcRenderer.on('set-clockout-mode', handler);
+    return () => ipcRenderer.removeListener('set-clockout-mode', handler);
+  },
+  sendClockoutConfirm: () => ipcRenderer.send('clockout-confirmed'),
 });

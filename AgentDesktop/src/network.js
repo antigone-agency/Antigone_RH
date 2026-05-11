@@ -16,27 +16,48 @@ function getLocalIP() {
   return '127.0.0.1';
 }
 
-// Récupérer le SSID WiFi connecté (Windows)
+// Récupérer le SSID WiFi connecté (cross-platform)
 function getWifiSSID() {
   return new Promise((resolve) => {
-    exec('netsh wlan show interfaces', { encoding: 'utf-8' }, (error, stdout) => {
-      if (error) {
-        resolve(null);
-        return;
-      }
-      
-      const lines = stdout.split('\n');
-      for (const line of lines) {
-        // Chercher "SSID" mais pas "BSSID" - trim pour gérer \r\n
-        const trimmed = line.trim();
-        const match = trimmed.match(/^SSID\s+:\s+(.+)/);
-        if (match && !trimmed.startsWith('BSSID')) {
-          resolve(match[1].trim());
-          return;
+    const platform = process.platform;
+
+    if (platform === 'win32') {
+      // Windows : netsh
+      exec('netsh wlan show interfaces', { encoding: 'utf-8' }, (error, stdout) => {
+        if (error) { resolve(null); return; }
+        const lines = stdout.split('\n');
+        for (const line of lines) {
+          const trimmed = line.trim();
+          const match = trimmed.match(/^SSID\s+:\s+(.+)/);
+          if (match && !trimmed.startsWith('BSSID')) {
+            resolve(match[1].trim());
+            return;
+          }
         }
-      }
-      resolve(null);
-    });
+        resolve(null);
+      });
+
+    } else if (platform === 'darwin') {
+      // macOS : essaie en0, puis en1
+      const tryIface = (iface, fallback) => {
+        exec(`networksetup -getairportnetwork ${iface}`, { encoding: 'utf-8' }, (err, stdout) => {
+          if (!err && stdout) {
+            const match = stdout.match(/Current Wi-Fi Network:\s*(.+)/);
+            if (match) { resolve(match[1].trim()); return; }
+          }
+          if (fallback) fallback();
+          else resolve(null);
+        });
+      };
+      tryIface('en0', () => tryIface('en1', null));
+
+    } else {
+      // Linux (fallback)
+      exec('iwgetid -r', { encoding: 'utf-8' }, (error, stdout) => {
+        if (error) { resolve(null); return; }
+        resolve(stdout.trim() || null);
+      });
+    }
   });
 }
 
