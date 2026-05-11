@@ -7,7 +7,7 @@
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>3.2.5</version>
+        <version>3.3.11</version>
         <relativePath/>
     </parent>
 
@@ -21,15 +21,32 @@
         <java.version>17</java.version>
         <!-- CVE fixes: override managed versions from Spring Boot BOM -->
         <!-- Fixes: CVE-2025-24813, CVE-2024-50379, CVE-2025-31650,
-                    CVE-2024-56337, CVE-2024-34750, CVE-2026-29145 -->
+                    CVE-2024-56337, CVE-2024-34750, CVE-2026-29145,
+                    CVE-2026-34483, CVE-2026-34487 -->
         <tomcat.version>10.1.53</tomcat.version>
         <!-- Fixes: CVE-2024-38816, CVE-2024-38819, CVE-2026-22741, CVE-2025-41242,
-                    CVE-2026-22737, CVE-2026-22745, CVE-2026-22735 -->
+                    CVE-2026-22737, CVE-2026-22745, CVE-2026-22735
+             NOTE: CVE-2025-41249 requires 6.2.11 (Spring Boot 3.4+ needed) -->
         <spring-framework.version>6.1.14</spring-framework.version>
-        <!-- Fixes: CVE-2024-38821 (6.2.7+)
+        <!-- Fixes: CVE-2024-38821, CVE-2025-22228
              NOTE: CVE-2026-22732 requires 6.5.9 which needs Spring Boot 3.5+ upgrade -->
-        <spring-security.version>6.2.7</spring-security.version>
+        <spring-security.version>6.3.8</spring-security.version>
+        <!-- Fixes: CVE-2026-42198 -->
+        <postgresql.version>42.7.11</postgresql.version>
+        <!-- Fixes: CVE-2024-57699 -->
+        <json-smart.version>2.5.2</json-smart.version>
     </properties>
+
+    <dependencyManagement>
+        <dependencies>
+            <!-- CVE-2023-2976: guava temp file disclosure via FileBackedOutputStream -->
+            <dependency>
+                <groupId>com.google.guava</groupId>
+                <artifactId>guava</artifactId>
+                <version>32.1.3-jre</version>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
 
     <dependencies>
         <!-- Spring Boot Starters -->
