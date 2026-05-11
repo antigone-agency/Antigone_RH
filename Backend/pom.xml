@@ -19,6 +19,16 @@
 
     <properties>
         <java.version>17</java.version>
+        <!-- CVE fixes: override managed versions from Spring Boot BOM -->
+        <!-- Fixes: CVE-2025-24813, CVE-2024-50379, CVE-2025-31650,
+                    CVE-2024-56337, CVE-2024-34750, CVE-2026-29145 -->
+        <tomcat.version>10.1.53</tomcat.version>
+        <!-- Fixes: CVE-2024-38816, CVE-2024-38819, CVE-2026-22741, CVE-2025-41242,
+                    CVE-2026-22737, CVE-2026-22745, CVE-2026-22735 -->
+        <spring-framework.version>6.1.14</spring-framework.version>
+        <!-- Fixes: CVE-2024-38821 (6.2.7+)
+             NOTE: CVE-2026-22732 requires 6.5.9 which needs Spring Boot 3.5+ upgrade -->
+        <spring-security.version>6.2.7</spring-security.version>
     </properties>
 
     <dependencies>

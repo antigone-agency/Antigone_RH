@@ -315,8 +315,10 @@ const ClientsPage: React.FC = () => {
                             initial={{ opacity:0, y:16 }}
                             animate={{ opacity:1, y:0 }}
                             transition={{ duration:0.3, delay: idx * 0.04, ease:'easeOut' }}
-                            className="group relative mt-11 flex flex-col rounded-[20px] bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 shadow-md hover:shadow-lg transition-shadow duration-300"
+                            className="group mt-11 [perspective:1000px]"
                         >
+                        <div className="relative flex flex-col rounded-[20px] bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 shadow-md [transform-style:preserve-3d] transition-all duration-500 ease-in-out group-hover:[box-shadow:0_20px_60px_-10px_rgba(243,105,4,0.45),0_8px_24px_-4px_rgba(243,105,4,0.25)] group-hover:[transform:rotate3d(1,1,0,15deg)]"
+                             style={{ willChange: 'transform' }}>
                             {/* ── Avatar flottant au-dessus de la card ── */}
                             <div className="absolute -top-11 left-1/2 -translate-x-1/2 w-[88px] h-[88px] rounded-full overflow-hidden border-4 border-white dark:border-gray-900 shadow-md z-10">
                                 {c.logoUrl
@@ -388,35 +390,31 @@ const ClientsPage: React.FC = () => {
                                     </div>
                                 </div>
 
-                                {/* ── Bouton CTA ── */}
-                                <button
-                                    onClick={() => { setViewing(c); setShowViewModal(true); }}
-                                    className="w-full rounded-[14px] py-[13px] text-[15px] font-semibold bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-gray-100 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors duration-200"
-                                >
-                                    Voir le client
-                                </button>
-
                             </div>
 
                             {/* ── Actions hover (coin haut droit) ── */}
-                            <div className="absolute top-3 right-3 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity z-20">
+                            <div className="absolute top-3 right-3 flex gap-1 opacity-0 group-hover:opacity-100 transition-all z-20">
                                 <button onClick={() => { setViewing(c); setShowViewModal(true); }}
-                                    className="p-1.5 rounded-lg bg-gray-100 dark:bg-gray-800 text-gray-500 hover:text-blue-500 transition-colors">
+                                    className="p-1.5 rounded-lg bg-gray-100 dark:bg-gray-800 text-gray-500 hover:text-blue-500 transition-all duration-300 group-hover:scale-110 group-hover:-translate-y-1"
+                                    style={{ transitionDelay: '50ms' }}>
                                     <HiOutlineEye size={15} />
                                 </button>
                                 {canEdit && (
                                     <button onClick={() => openEdit(c)}
-                                        className="p-1.5 rounded-lg bg-gray-100 dark:bg-gray-800 text-gray-500 hover:text-brand-500 transition-colors">
+                                        className="p-1.5 rounded-lg bg-gray-100 dark:bg-gray-800 text-gray-500 hover:text-brand-500 transition-all duration-300 group-hover:scale-110 group-hover:-translate-y-1"
+                                        style={{ transitionDelay: '100ms' }}>
                                         <HiOutlinePencil size={15} />
                                     </button>
                                 )}
                                 {canDelete && (
                                     <button onClick={() => handleDelete(c.id)}
-                                        className="p-1.5 rounded-lg bg-gray-100 dark:bg-gray-800 text-gray-500 hover:text-red-500 transition-colors">
+                                        className="p-1.5 rounded-lg bg-gray-100 dark:bg-gray-800 text-gray-500 hover:text-red-500 transition-all duration-300 group-hover:scale-110 group-hover:-translate-y-1"
+                                        style={{ transitionDelay: '150ms' }}>
                                         <HiOutlineTrash size={15} />
                                     </button>
                                 )}
                             </div>
+                        </div>
                         </motion.div>
                         );
                     })}

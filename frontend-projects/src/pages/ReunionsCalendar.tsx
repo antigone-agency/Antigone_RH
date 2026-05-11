@@ -384,7 +384,8 @@ const ReunionsCalendar: React.FC = () => {
       {/* Create Meeting Modal */}
       {showCreate && (
         <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
-          <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl w-full max-w-md p-6 max-h-[85vh] overflow-y-auto">
+          <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl w-full max-w-md max-h-[85vh] overflow-hidden flex flex-col">
+            <div className="overflow-y-auto flex-1 p-6">
             <div className="flex items-center justify-between mb-5">
               <h3 className="text-base font-bold text-gray-900 dark:text-white">Planifier une réunion</h3>
               <button onClick={() => setShowCreate(false)} className="p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-400">
@@ -544,6 +545,7 @@ const ReunionsCalendar: React.FC = () => {
               <button onClick={handleCreate}
                 className="flex-1 px-4 py-2.5 rounded-xl bg-blue-600 text-white text-sm font-medium hover:bg-blue-700 shadow-sm transition-colors"
               >Envoyer la demande</button>
+            </div>
             </div>
           </div>
         </div>
