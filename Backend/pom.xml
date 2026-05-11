@@ -7,7 +7,7 @@
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>3.3.11</version>
+        <version>3.5.6</version>
         <relativePath/>
     </parent>
 
@@ -28,9 +28,8 @@
                     CVE-2026-22737, CVE-2026-22745, CVE-2026-22735
              NOTE: CVE-2025-41249 requires 6.2.11 (Spring Boot 3.4+ needed) -->
         <spring-framework.version>6.1.14</spring-framework.version>
-        <!-- Fixes: CVE-2024-38821, CVE-2025-22228
-             NOTE: CVE-2026-22732 requires 6.5.9 which needs Spring Boot 3.5+ upgrade -->
-        <spring-security.version>6.3.8</spring-security.version>
+        <!-- Fixes: CVE-2024-38821, CVE-2025-22228, CVE-2026-22732 -->
+        <spring-security.version>6.5.9</spring-security.version>
         <!-- Fixes: CVE-2026-42198 -->
         <postgresql.version>42.7.11</postgresql.version>
         <!-- Fixes: CVE-2024-57699 -->
