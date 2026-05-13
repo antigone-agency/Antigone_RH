@@ -36,7 +36,8 @@ public class Projet {
 
     /** DETERMINE or INDETERMINE */
     @Builder.Default
-    @Column(name = "type_projet", columnDefinition = "VARCHAR(50) DEFAULT 'DETERMINE'")
+    @Column(name = "type_projet", length = 50)
+    @org.hibernate.annotations.ColumnDefault("'DETERMINE'")
     private String typeProjet = "DETERMINE";
 
     @Column(columnDefinition = "TEXT")

@@ -221,7 +221,20 @@ const RolesPage: React.FC = () => {
       )}
 
       {/* Modal */}
-      <Modal isOpen={showModal} onClose={() => setShowModal(false)} title={editingRole ? 'Modifier le rôle' : 'Nouveau rôle'} size="md">
+      <Modal
+        isOpen={showModal}
+        onClose={() => setShowModal(false)}
+        title={editingRole ? 'Modifier le rôle' : 'Nouveau rôle'}
+        size="md"
+        footer={
+          <>
+            <Button variant="ghost" onClick={() => setShowModal(false)}>Annuler</Button>
+            <Button onClick={handleSave} disabled={!formNom.trim()}>
+              {editingRole ? 'Modifier' : 'Créer'}
+            </Button>
+          </>
+        }
+      >
         <div className="space-y-5">
           {/* Role name */}
           <div>
@@ -288,8 +301,9 @@ const RolesPage: React.FC = () => {
                         const shortName = dashIdx > -1 ? perm.label.slice(0, dashIdx).trim() : perm.label;
                         const description = dashIdx > -1 ? perm.label.slice(dashIdx + 1).trim() : '';
                         return (
-                          <label
+                          <div
                             key={perm.id}
+                            onClick={() => togglePermission(perm.id)}
                             className={`flex items-start gap-3 p-2.5 rounded-lg cursor-pointer transition-all border ${
                               isChecked
                                 ? 'border-transparent bg-opacity-10'
@@ -306,12 +320,6 @@ const RolesPage: React.FC = () => {
                             >
                               {isChecked && <HiOutlineCheck size={11} className="text-white" />}
                             </div>
-                            <input
-                              type="checkbox"
-                              checked={isChecked}
-                              onChange={() => togglePermission(perm.id)}
-                              className="sr-only"
-                            />
                             <div className="min-w-0">
                               <div className="text-theme-sm font-semibold text-gray-800 dark:text-white leading-tight">
                                 {shortName}
@@ -322,7 +330,7 @@ const RolesPage: React.FC = () => {
                                 </div>
                               )}
                             </div>
-                          </label>
+                          </div>
                         );
                       })}
                     </div>
@@ -341,16 +349,13 @@ const RolesPage: React.FC = () => {
                     </div>
                     <div className="space-y-1">
                       {ungrouped.map(perm => (
-                        <label key={perm.id} className="flex items-center gap-3 p-2 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 cursor-pointer">
-                          <input
-                            type="checkbox"
-                            checked={selectedPermissionIds.has(perm.id)}
-                            onChange={() => togglePermission(perm.id)}
-                            className="h-4 w-4 rounded border-gray-300 text-brand-500 focus:ring-brand-500 dark:border-gray-600"
-                          />
+                        <div key={perm.id} onClick={() => togglePermission(perm.id)} className="flex items-center gap-3 p-2 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 cursor-pointer">
+                          <div className={`shrink-0 w-4 h-4 rounded border-2 flex items-center justify-center transition-all ${selectedPermissionIds.has(perm.id) ? 'bg-brand-500 border-brand-500' : 'border-gray-300'}`}>
+                            {selectedPermissionIds.has(perm.id) && <HiOutlineCheck size={10} className="text-white" />}
+                          </div>
                           <span className="text-theme-sm text-gray-700 dark:text-gray-300">{perm.label}</span>
                           <span className="text-theme-xs text-gray-400">({perm.permission})</span>
-                        </label>
+                        </div>
                       ))}
                     </div>
                   </div>
@@ -363,12 +368,6 @@ const RolesPage: React.FC = () => {
           </div>
         </div>
 
-        <div className="flex justify-end gap-3 mt-6">
-          <Button variant="ghost" onClick={() => setShowModal(false)}>Annuler</Button>
-          <Button onClick={handleSave} disabled={!formNom.trim()}>
-            {editingRole ? 'Modifier' : 'Créer'}
-          </Button>
-        </div>
       </Modal>
 
       <ConfirmDialog
