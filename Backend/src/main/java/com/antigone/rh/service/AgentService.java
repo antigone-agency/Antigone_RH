@@ -76,14 +76,18 @@ public class AgentService {
 
         String ssid = getParametreSysteme("SSID_ENTREPRISE", "");
         String ipRange = getParametreSysteme("IP_RESEAU_ENTREPRISE", "192.168.1.0/24");
+        int popupIntervalle = parseIntParam("POPUP_INTERVALLE_HEURES", 2);
+        int popupTimeout = parseIntParam("POPUP_TIMEOUT_SECONDES", 60);
+        int inactiviteTolerance = parseIntParam("INACTIVITE_TOLERANCE_MINUTES_JOUR", 30);
+        int toleranceRetard = parseIntParam("TOLERANCE_RETARD_MINUTES", 10);
 
         return AgentConfigDTO.builder()
-                .popupIntervalleHeures(2)
-                .popupTimeoutSecondes(60)
-                .inactiviteToleranceMinutesJour(0)
+                .popupIntervalleHeures(popupIntervalle)
+                .popupTimeoutSecondes(popupTimeout)
+                .inactiviteToleranceMinutesJour(inactiviteTolerance)
                 .reseauEntrepriseIp(ipRange)
                 .reseauEntrepriseSsid(ssid)
-                .toleranceRetardMinutes(0)
+                .toleranceRetardMinutes(toleranceRetard)
                 .heureDebutTravail(heureDebut)
                 .heureFinTravail(heureFin)
                 .pauseDebutMidi(pauseDebut)
@@ -453,6 +457,15 @@ public class AgentService {
                 .map(Referentiel::getValeur)
                 .findFirst()
                 .orElse(defaultValue);
+    }
+
+    private int parseIntParam(String libelle, int defaultValue) {
+        try {
+            String val = getParametreSysteme(libelle, String.valueOf(defaultValue));
+            return Integer.parseInt(val.trim());
+        } catch (NumberFormatException e) {
+            return defaultValue;
+        }
     }
 
     // ========================================

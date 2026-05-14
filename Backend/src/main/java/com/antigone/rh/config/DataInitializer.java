@@ -48,7 +48,19 @@ public class DataInitializer implements CommandLineRunner {
         // 3. Initialisation des types de congé
         initTypeConge();
 
-        // 4. Création du compte admin par défaut
+        // 4. Référentiels essentiels pour le bon fonctionnement
+        initGenres();
+        initTypesContrat();
+        initDepartements();
+        initPostes();
+        initNiveauxHierarchiques();
+        initSitesEtablissement();
+        initTypesDemande();
+        initFormatsMediaPlan();
+        initTypesMediaPlan();
+        initPlateformesMediaPlan();
+
+        // 5. Création du compte admin par défaut
         initDefaultAdmin();
     }
 
@@ -106,6 +118,11 @@ public class DataInitializer implements CommandLineRunner {
         createParamIfNotExists("MAX_REPORT_CONGE", "5",
                 "Nombre maximum de jours de congé reportables d'une année sur l'autre",
                 TypeReferentiel.PARAMETRE_SYSTEME);
+
+        // --- Paramètres réseau / Agent Desktop ---
+        createParamIfNotExists("SSID_ENTREPRISE", "",
+                "SSID WiFi du réseau de l'entreprise (ex: Antigone-Corp). Laisser vide si non applicable.",
+                TypeReferentiel.PARAMETRE_SYSTEME);
     }
 
     // ===================== Types de Congé =====================
@@ -114,6 +131,111 @@ public class DataInitializer implements CommandLineRunner {
         for (TypeConge tc : TypeConge.values()) {
             createParamIfNotExists(tc.name(), null, tc.getLabel(), TypeReferentiel.TYPE_CONGE);
         }
+    }
+
+    // ===================== Genres =====================
+
+    private void initGenres() {
+        createParamIfNotExists("Masculin", null, "Genre masculin", TypeReferentiel.GENRE);
+        createParamIfNotExists("Féminin", null, "Genre féminin", TypeReferentiel.GENRE);
+    }
+
+    // ===================== Types de contrat =====================
+
+    private void initTypesContrat() {
+        createParamIfNotExists("CDI", null, "Contrat à Durée Indéterminée", TypeReferentiel.TYPE_CONTRAT);
+        createParamIfNotExists("CDD", null, "Contrat à Durée Déterminée", TypeReferentiel.TYPE_CONTRAT);
+        createParamIfNotExists("Stage", null, "Convention de stage", TypeReferentiel.TYPE_CONTRAT);
+        createParamIfNotExists("Freelance", null, "Contrat freelance / prestataire", TypeReferentiel.TYPE_CONTRAT);
+        createParamIfNotExists("Alternance", null, "Contrat d'alternance / apprentissage", TypeReferentiel.TYPE_CONTRAT);
+    }
+
+    // ===================== Départements =====================
+
+    private void initDepartements() {
+        createParamIfNotExists("Direction Générale", null, "Direction générale de l'entreprise", TypeReferentiel.DEPARTEMENT);
+        createParamIfNotExists("Ressources Humaines", null, "Département RH", TypeReferentiel.DEPARTEMENT);
+        createParamIfNotExists("Finance & Comptabilité", null, "Département finance et comptabilité", TypeReferentiel.DEPARTEMENT);
+        createParamIfNotExists("Informatique & Technique", null, "Département IT et technique", TypeReferentiel.DEPARTEMENT);
+        createParamIfNotExists("Commercial & Ventes", null, "Département commercial et ventes", TypeReferentiel.DEPARTEMENT);
+        createParamIfNotExists("Marketing & Communication", null, "Département marketing et communication", TypeReferentiel.DEPARTEMENT);
+        createParamIfNotExists("Production", null, "Département production", TypeReferentiel.DEPARTEMENT);
+        createParamIfNotExists("Juridique", null, "Département juridique", TypeReferentiel.DEPARTEMENT);
+    }
+
+    // ===================== Postes =====================
+
+    private void initPostes() {
+        createParamIfNotExists("Directeur Général", null, "DG / CEO", TypeReferentiel.POSTE);
+        createParamIfNotExists("Responsable RH", null, "Responsable des ressources humaines", TypeReferentiel.POSTE);
+        createParamIfNotExists("Chef de Projet", null, "Chef de projet", TypeReferentiel.POSTE);
+        createParamIfNotExists("Développeur", null, "Développeur informatique", TypeReferentiel.POSTE);
+        createParamIfNotExists("Designer", null, "Designer graphique / UX", TypeReferentiel.POSTE);
+        createParamIfNotExists("Commercial", null, "Commercial / Chargé de ventes", TypeReferentiel.POSTE);
+        createParamIfNotExists("Comptable", null, "Comptable", TypeReferentiel.POSTE);
+        createParamIfNotExists("Assistant(e) Administratif(ve)", null, "Assistant administratif", TypeReferentiel.POSTE);
+        createParamIfNotExists("Stagiaire", null, "Stagiaire", TypeReferentiel.POSTE);
+    }
+
+    // ===================== Niveaux Hiérarchiques =====================
+
+    private void initNiveauxHierarchiques() {
+        createParamIfNotExists("Junior", null, "Profil junior (0-2 ans d'expérience)", TypeReferentiel.NIVEAU_HIERARCHIQUE);
+        createParamIfNotExists("Confirmé", null, "Profil confirmé (2-5 ans d'expérience)", TypeReferentiel.NIVEAU_HIERARCHIQUE);
+        createParamIfNotExists("Senior", null, "Profil senior (5+ ans d'expérience)", TypeReferentiel.NIVEAU_HIERARCHIQUE);
+        createParamIfNotExists("Manager", null, "Manager d'équipe", TypeReferentiel.NIVEAU_HIERARCHIQUE);
+        createParamIfNotExists("Directeur", null, "Directeur de département", TypeReferentiel.NIVEAU_HIERARCHIQUE);
+    }
+
+    // ===================== Sites / Établissements =====================
+
+    private void initSitesEtablissement() {
+        createParamIfNotExists("Siège principal", null, "Siège principal de l'entreprise", TypeReferentiel.SITE_ETABLISSEMENT);
+        createParamIfNotExists("Télétravail", null, "Travail à distance / home office", TypeReferentiel.SITE_ETABLISSEMENT);
+    }
+
+    // ===================== Types de Demande =====================
+
+    private void initTypesDemande() {
+        createParamIfNotExists("Attestation de travail", null, "Demande d'attestation de travail", TypeReferentiel.TYPE_DEMANDE);
+        createParamIfNotExists("Attestation de salaire", null, "Demande d'attestation de salaire", TypeReferentiel.TYPE_DEMANDE);
+        createParamIfNotExists("Ordre de mission", null, "Demande d'ordre de mission", TypeReferentiel.TYPE_DEMANDE);
+        createParamIfNotExists("Bulletin de paie", null, "Demande de bulletin de paie", TypeReferentiel.TYPE_DEMANDE);
+        createParamIfNotExists("Autorisation de sortie", null, "Demande d'autorisation de sortie anticipée", TypeReferentiel.TYPE_DEMANDE);
+        createParamIfNotExists("Avance sur salaire", null, "Demande d'avance sur salaire", TypeReferentiel.TYPE_DEMANDE);
+        createParamIfNotExists("Autre", null, "Autre type de demande", TypeReferentiel.TYPE_DEMANDE);
+    }
+
+    // ===================== Formats Media Plan =====================
+
+    private void initFormatsMediaPlan() {
+        createParamIfNotExists("Bannière", null, "Bannière publicitaire", TypeReferentiel.FORMAT_MEDIA_PLAN);
+        createParamIfNotExists("Story", null, "Format story (vertical)", TypeReferentiel.FORMAT_MEDIA_PLAN);
+        createParamIfNotExists("Post carré", null, "Post format carré 1:1", TypeReferentiel.FORMAT_MEDIA_PLAN);
+        createParamIfNotExists("Vidéo", null, "Format vidéo", TypeReferentiel.FORMAT_MEDIA_PLAN);
+        createParamIfNotExists("Carrousel", null, "Format carrousel multi-images", TypeReferentiel.FORMAT_MEDIA_PLAN);
+        createParamIfNotExists("Réels / Short", null, "Vidéo courte format reels/shorts", TypeReferentiel.FORMAT_MEDIA_PLAN);
+    }
+
+    // ===================== Types Media Plan =====================
+
+    private void initTypesMediaPlan() {
+        createParamIfNotExists("Organique", null, "Publication organique sans budget publicitaire", TypeReferentiel.TYPE_MEDIA_PLAN);
+        createParamIfNotExists("Payant", null, "Publication sponsorisée / publicité payante", TypeReferentiel.TYPE_MEDIA_PLAN);
+        createParamIfNotExists("Partenariat", null, "Publication en partenariat ou collaboration", TypeReferentiel.TYPE_MEDIA_PLAN);
+    }
+
+    // ===================== Plateformes Media Plan =====================
+
+    private void initPlateformesMediaPlan() {
+        createParamIfNotExists("Instagram", null, "Réseau social Instagram", TypeReferentiel.PLATFORME_MEDIA_PLAN);
+        createParamIfNotExists("Facebook", null, "Réseau social Facebook", TypeReferentiel.PLATFORME_MEDIA_PLAN);
+        createParamIfNotExists("LinkedIn", null, "Réseau social LinkedIn", TypeReferentiel.PLATFORME_MEDIA_PLAN);
+        createParamIfNotExists("TikTok", null, "Réseau social TikTok", TypeReferentiel.PLATFORME_MEDIA_PLAN);
+        createParamIfNotExists("YouTube", null, "Plateforme vidéo YouTube", TypeReferentiel.PLATFORME_MEDIA_PLAN);
+        createParamIfNotExists("Twitter / X", null, "Réseau social Twitter/X", TypeReferentiel.PLATFORME_MEDIA_PLAN);
+        createParamIfNotExists("Google Ads", null, "Régie publicitaire Google", TypeReferentiel.PLATFORME_MEDIA_PLAN);
+        createParamIfNotExists("Site Web", null, "Site web de l'entreprise", TypeReferentiel.PLATFORME_MEDIA_PLAN);
     }
 
     private void createParamIfNotExists(String libelle, String valeur, String description, TypeReferentiel type) {
