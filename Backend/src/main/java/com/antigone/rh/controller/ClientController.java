@@ -7,6 +7,7 @@ import com.antigone.rh.service.ClientViewerDriveService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.core.io.Resource;
 import org.springframework.http.*;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -26,16 +27,19 @@ public class ClientController {
     private final ClientViewerDriveService clientViewerDriveService;
 
     @GetMapping
+    @PreAuthorize("hasAnyAuthority('VIEW_CLIENTS', 'MANAGE_CLIENTS')")
     public ResponseEntity<ApiResponse<List<ClientDTO>>> getAll() {
         return ResponseEntity.ok(ApiResponse.ok("Clients récupérés", clientService.getAll()));
     }
 
     @GetMapping("/{id}")
+    @PreAuthorize("hasAnyAuthority('VIEW_CLIENTS', 'MANAGE_CLIENTS')")
     public ResponseEntity<ApiResponse<ClientDTO>> getById(@PathVariable Long id) {
         return ResponseEntity.ok(ApiResponse.ok("Client récupéré", clientService.getById(id)));
     }
 
     @GetMapping("/{id}/drive-link")
+    @PreAuthorize("hasAnyAuthority('VIEW_CLIENTS', 'MANAGE_CLIENTS')")
     public ResponseEntity<ApiResponse<String>> getDriveLink(@PathVariable Long id) {
         ClientDTO dto = clientService.getById(id);
         String link = googleDriveService.getClientFolderLink(dto.getNom());
@@ -75,6 +79,7 @@ public class ClientController {
     }
 
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @PreAuthorize("hasAuthority('MANAGE_CLIENTS')")
     public ResponseEntity<ApiResponse<ClientDTO>> create(
             @RequestParam("nom") String nom,
             @RequestParam(value = "email", required = false) String email,
@@ -101,6 +106,7 @@ public class ClientController {
     }
 
     @PutMapping(value = "/{id}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @PreAuthorize("hasAuthority('MANAGE_CLIENTS')")
     public ResponseEntity<ApiResponse<ClientDTO>> update(
             @PathVariable Long id,
             @RequestParam(value = "nom", required = false) String nom,
@@ -130,6 +136,7 @@ public class ClientController {
     }
 
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasAuthority('MANAGE_CLIENTS')")
     public ResponseEntity<ApiResponse<Void>> delete(@PathVariable Long id) {
         try {
             clientService.delete(id);

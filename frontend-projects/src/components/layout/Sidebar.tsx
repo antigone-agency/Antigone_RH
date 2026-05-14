@@ -74,7 +74,7 @@ const panelGroupsTemplate: Array<{ title: string; items: NavItemDef[]; modes: Ar
         label: 'Projets',
         path: '/projets',
         icon: <HiOutlineBriefcase size={18} />,
-        permission: 'VIEW_PROJETS',
+        permissions: ['MANAGE_ALL_PROJETS', 'VIEW_PROJETS_CREATE_TACHES'],
       },
       {
         key: 'mes-projets',
