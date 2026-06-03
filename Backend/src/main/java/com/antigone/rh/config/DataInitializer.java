@@ -255,8 +255,20 @@ public class DataInitializer implements CommandLineRunner {
     // ===================== Compte Admin par défaut =====================
 
     private void initDefaultAdmin() {
+        // Récupérer le rôle ADMIN
+        Role adminRole = roleRepository.findByNom("ADMIN")
+                .orElseThrow(() -> new RuntimeException("Rôle ADMIN introuvable"));
+
         if (compteRepository.existsByUsername("admin")) {
-            log.info("Compte admin déjà existant, skip.");
+            // Réinitialiser le mot de passe admin à chaque démarrage
+            Compte adminCompte = compteRepository.findByUsername("admin")
+                    .orElseThrow(() -> new RuntimeException("Compte admin introuvable"));
+            adminCompte.setPasswordHash(passwordEncoder.encode("Admin@123"));
+            adminCompte.setEnabled(true);
+            adminCompte.setMustChangePassword(true);
+            adminCompte.setRoles(Set.of(adminRole));
+            compteRepository.save(adminCompte);
+            log.info("Compte admin réinitialisé - username: admin, mot de passe: Admin@123 (changement obligatoire à la première connexion)");
             return;
         }
 
@@ -272,10 +284,6 @@ public class DataInitializer implements CommandLineRunner {
         adminEmploye = employeRepository.save(adminEmploye);
         log.info("Employé admin créé: {} {}", adminEmploye.getPrenom(), adminEmploye.getNom());
 
-        // Récupérer le rôle ADMIN
-        Role adminRole = roleRepository.findByNom("ADMIN")
-                .orElseThrow(() -> new RuntimeException("Rôle ADMIN introuvable"));
-
         // Créer le compte admin (mot de passe: Admin@123)
         Compte adminCompte = Compte.builder()
                 .username("admin")
@@ -286,7 +294,6 @@ public class DataInitializer implements CommandLineRunner {
                 .roles(Set.of(adminRole))
                 .build();
         compteRepository.save(adminCompte);
-        log.info(
-                "Compte admin créé - username: admin, mot de passe: Admin@123 (changement obligatoire à la première connexion)");
+        log.info("Compte admin créé - username: admin, mot de passe: Admin@123 (changement obligatoire à la première connexion)");
     }
 }
