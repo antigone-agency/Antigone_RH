@@ -4,7 +4,7 @@ import tailwindcss from '@tailwindcss/vite'
 
 export default defineConfig({
   base: process.env.GITHUB_ACTIONS ? '/RH-Application/projects/' : '/',
-  plugins: [react(), tailwindcss(),
+  plugins: [react(), tailwindcss()],
   server: {
     port: 3000,
     proxy: {
