@@ -1,22 +1,27 @@
 # Maven build output — rebuilt inside Docker
+
 target/
 
 # Local credentials and secrets — never in image
+
 service-account.json
 client-viewer-service-account.json
 tokens/
 fix_json.py
 
 # Local DB dumps
+
 dump.sql
 
 # IDE / OS
+
 .idea/
-*.iml
+\*.iml
 .vscode/
 .DS_Store
 Thumbs.db
 
 # Logs
-*.log
+
+\*.log
 compile_out.txt

@@ -11,9 +11,11 @@ import java.nio.file.Paths;
 import java.util.Base64;
 
 /**
- * Initializes Google Drive service account credentials from base64-encoded environment variable.
+ * Initializes Google Drive service account credentials from base64-encoded
+ * environment variable.
  * 
- * In production (Render), set GOOGLE_DRIVE_SERVICE_ACCOUNT_KEY_B64 env var with the base64-encoded JSON.
+ * In production (Render), set GOOGLE_DRIVE_SERVICE_ACCOUNT_KEY_B64 env var with
+ * the base64-encoded JSON.
  * Locally, use the service-account.json file directly in the classpath.
  */
 @Configuration
@@ -26,7 +28,7 @@ public class GoogleDriveInitializationConfig {
     @PostConstruct
     public void initializeServiceAccountKey() {
         String b64Key = System.getenv(KEY_B64_ENV);
-        
+
         if (b64Key == null || b64Key.trim().isEmpty()) {
             log.info("No base64-encoded Google service account key found. Using local file (if exists): {}", KEY_FILE);
             return;
@@ -34,15 +36,15 @@ public class GoogleDriveInitializationConfig {
 
         try {
             log.info("Decoding base64 Google service account key from env var: {}", KEY_B64_ENV);
-            
+
             // Decode base64
             byte[] decodedBytes = Base64.getDecoder().decode(b64Key);
             String jsonContent = new String(decodedBytes);
-            
+
             // Write to file
             Files.write(Paths.get(KEY_FILE), jsonContent.getBytes());
             log.info("Service account key written to: {}", KEY_FILE);
-            
+
         } catch (IllegalArgumentException e) {
             log.error("Invalid base64 encoding for {}: {}", KEY_B64_ENV, e.getMessage());
         } catch (Exception e) {
