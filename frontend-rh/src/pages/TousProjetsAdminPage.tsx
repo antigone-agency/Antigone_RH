@@ -65,7 +65,7 @@ const TousProjetsAdminPage: React.FC = () => {
         setDetailLoading(projetId);
         try {
             const tRes = await tacheService.getByProjet(projetId);
-            const taches: TacheItem[] = (tRes.data?.data || tRes.data || []).map((t: any) => ({
+            const taches: TacheItem[] = ((tRes.data?.data || tRes.data || []) as any[]).map((t: any) => ({
                 id: t.id,
                 titre: t.titre,
                 statut: t.statut,

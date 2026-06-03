@@ -131,7 +131,7 @@ const ProjetTachesPage: React.FC = () => {
                 // Manager: can only assign to themselves + their own subordinates who are project members
                 try {
                     const subRes = await employeService.getSubordinates(currentUserId);
-                    const subordinateIds = new Set((subRes.data.data || subRes.data || []).map((s: any) => s.id));
+                    const subordinateIds = new Set(((subRes.data.data || subRes.data || []) as any[]).map((s: any) => s.id));
                     const filtered = Array.from(allMemberMap.values()).filter(
                         m => m.id === currentUserId || subordinateIds.has(m.id)
                     );
