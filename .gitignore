@@ -1,8 +1,7 @@
-# Lock files
-package-lock.json
+# Lock files (tracked for CI/CD reproducibility)
+# package-lock.json
 yarn.lock
 pnpm-lock.yaml
-Frontend/package-lock.json
 
 # Node modules
 node_modules/
