@@ -10,7 +10,7 @@ export const API_BASE = envUrl
   ? envUrl
   : window.location.hostname === 'localhost'
     ? `http://localhost:8080`
-    : 'https://rh-antigone.onrender.com';
+    : 'https://antigone-rh.onrender.com';
 
 const api = axios.create({
   baseURL: `${API_BASE}/api`,
