@@ -38,6 +38,7 @@ jobs:
         run: npm run build
         env:
           GITHUB_ACTIONS: 'true'
+          TS_NODE_TRANSPILE_ONLY: 'true'
 
       - name: Install frontend-projects dependencies
         working-directory: frontend-projects
