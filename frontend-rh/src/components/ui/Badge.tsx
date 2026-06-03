@@ -5,6 +5,7 @@ interface BadgeProps {
   children?: React.ReactNode;
   variant?: 'primary' | 'secondary' | 'success' | 'warning' | 'danger' | 'info' | 'neutral' | 'light';
   color?: 'primary' | 'success' | 'error' | 'warning' | 'info' | 'neutral';
+  title?: string;
 }
 
 const variantClasses: Record<string, string> = {
@@ -26,10 +27,10 @@ const colorClasses: Record<string, string> = {
   neutral: 'bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-300',
 };
 
-const Badge: React.FC<BadgeProps> = ({ text, children, variant = 'neutral', color }) => {
+const Badge: React.FC<BadgeProps> = ({ text, children, variant = 'neutral', color, title }) => {
   const classes = color ? colorClasses[color] || colorClasses.neutral : variantClasses[variant] || variantClasses.neutral;
   return (
-    <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-theme-xs font-medium ${classes}`}>
+    <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-theme-xs font-medium ${classes}`} title={title}>
       {children || text}
     </span>
   );
