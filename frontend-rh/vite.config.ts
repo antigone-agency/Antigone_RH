@@ -3,7 +3,7 @@ import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
 
 export default defineConfig({
-  base: process.env.GITHUB_ACTIONS ? '/RH-Application/' : '/',
+  base: process.env.GITHUB_ACTIONS ? '/RH-Application/rh/' : '/',
   plugins: [react(), tailwindcss()],
   server: {
     port: 3001,
