@@ -11,6 +11,12 @@ app:
     brevo-api-key: ${BREVO_API_KEY:}
   upload:
     dir: uploads/justificatifs
+  google:
+    drive:
+      service-account-key-path: ${GOOGLE_DRIVE_SERVICE_ACCOUNT_KEY_PATH:service-account.json}
+      tokens-directory-path: tokens
+      parent-folder-id: ${GOOGLE_DRIVE_PARENT_FOLDER_ID:}
+      redirect-uri: ${GOOGLE_DRIVE_REDIRECT_URI:}
 
 spring:
   autoconfigure:
