@@ -66,12 +66,32 @@ jobs:
           <head>
               <meta charset="utf-8" />
               <title>Antigone</title>
-              <script>window.location.replace('/Antigone_RH/rh/login');</script>
+              <script>window.location.replace('/Antigone_RH/rh/');</script>
           </head>
           <body></body>
           </html>
           EOF
-          cp site/index.html site/404.html
+          cat > site/404.html << 'EOF'
+          <!DOCTYPE html>
+          <html>
+          <head>
+              <meta charset="utf-8" />
+              <title>Antigone</title>
+              <script>
+                var pathSegmentsToKeep = 2;
+                var l = window.location;
+                l.replace(
+                  l.protocol + '//' + l.hostname + (l.port ? ':' + l.port : '') +
+                  l.pathname.split('/').slice(0, 1 + pathSegmentsToKeep).join('/') + '/?/' +
+                  l.pathname.slice(1).split('/').slice(pathSegmentsToKeep).join('/').replace(/&/g, '~and~') +
+                  (l.search ? '&' + l.search.slice(1).replace(/&/g, '~and~') : '') +
+                  l.hash
+                );
+              </script>
+          </head>
+          <body></body>
+          </html>
+          EOF
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
