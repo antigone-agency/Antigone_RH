@@ -19,6 +19,14 @@ services:
         sync: false
       - key: MAIL_PASSWORD
         sync: false
+      - key: JWT_SECRET
+        sync: false
+      - key: FRONTEND_URL
+        sync: false
+      - key: BREVO_API_KEY
+        sync: false
+      - key: GOOGLE_DRIVE_SERVICE_ACCOUNT_KEY_PATH
+        sync: false
 
 databases:
   - name: antigone-rh-db
