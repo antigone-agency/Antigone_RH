@@ -204,7 +204,7 @@ const ComptesPage: React.FC = () => {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-title-sm font-bold text-gray-800 dark:text-white">Gestion des Comptes</h1>
+          <h1 className="text-title-sm font-extrabold tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-gray-900 to-[#683b77] dark:from-white dark:to-[#ab78c3]">Gestion des Comptes</h1>
           <p className="text-theme-sm text-gray-500 dark:text-gray-400 mt-1">Créer et gérer les comptes utilisateurs</p>
         </div>
         <Button onClick={() => { setCreateForm({ employeId: 0, roleIds: [] }); setShowCreateModal(true); }}>

@@ -219,7 +219,12 @@ const MonCalendrierPage: React.FC = () => {
     <div className="space-y-6">
       {/* Header */}
       <div>
-        <h1 className="text-title-sm font-bold text-gray-800 dark:text-white">Mon calendrier</h1>
+        <h1 
+          className="text-title-sm font-extrabold tracking-tight" 
+          style={{ background: 'linear-gradient(to right, #111827, #683b77)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}
+        >
+          Mon calendrier
+        </h1>
         <p className="text-theme-sm text-gray-500 dark:text-gray-400 mt-1">
           Consultez vos congés, télétravail, autorisations et jours fériés
         </p>

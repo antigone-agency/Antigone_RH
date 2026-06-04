@@ -304,7 +304,6 @@ const ClientsPage: React.FC = () => {
                     {filtered.map((c, idx) => {
                         const avatarBgs = ['bg-blue-500','bg-emerald-500','bg-violet-500','bg-amber-500','bg-pink-500'];
                         const avatarBg = avatarBgs[c.nom.length % avatarBgs.length];
-                        const baseApi = window.location.hostname === 'localhost' ? 'http://localhost:8080' : 'https://rh-antigone.onrender.com';
                         const pages = c.clientPages ? c.clientPages.split(',').map(p => p.trim()).filter(Boolean) : [];
                         const pageLabel: Record<string,string> = { MEDIA_PLANS:'Méd', PROJETS:'Pro', FICHIERS:'Fic' };
                         const pageFull: Record<string,string> = { MEDIA_PLANS:'Médias', PROJETS:'Projets', FICHIERS:'Fichiers' };
@@ -323,7 +322,7 @@ const ClientsPage: React.FC = () => {
                             <div className="absolute -top-11 left-1/2 -translate-x-1/2 w-[88px] h-[88px] rounded-full overflow-hidden border-4 border-white dark:border-gray-900 shadow-md z-10">
                                 {c.logoUrl
                                     ? <img
-                                        src={`${baseApi}${c.logoUrl}?t=${imgTs}`}
+                                        src={`${API_BASE}${c.logoUrl}?t=${imgTs}`}
                                         alt=""
                                         className="w-full h-full object-cover"
                                         onError={(e) => {

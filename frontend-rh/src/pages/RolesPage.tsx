@@ -166,8 +166,9 @@ const RolesPage: React.FC = () => {
               const dashIdx = p.label?.indexOf('—') ?? -1;
               const shortName = dashIdx > -1 ? p.label.slice(0, dashIdx).trim() : (p.label || p.permission);
               return (
-                <Badge key={p.id} variant="light" color="primary" title={p.label}>{shortName}</Badge>
-              );
+<span key={p.id} title={p.label}>
+  <Badge variant="light" color="primary">{shortName}</Badge>
+</span>              );
             })
           ) : (
             <span className="text-gray-400 text-theme-sm">Aucune permission</span>
@@ -205,7 +206,7 @@ const RolesPage: React.FC = () => {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-title-sm font-bold text-gray-800 dark:text-white">Gestion des Rôles</h1>
+          <h1 className="text-title-sm font-extrabold tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-gray-900 to-[#683b77] dark:from-white dark:to-[#ab78c3]">Gestion des Rôles</h1>
           <p className="text-theme-sm text-gray-500 dark:text-gray-400 mt-1">Définir les rôles et leurs permissions d'accès aux vues</p>
         </div>
         <Button onClick={openCreate}>

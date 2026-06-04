@@ -3,12 +3,12 @@ import { clearAuthSnapshot } from '../utils/authStorage';
 
 // Auto-detect API base:
 //  1. Use VITE_API_URL env var if explicitly set
-//  2. If running on localhost → assume backend is on :8080
+//  2. If running on localhost/127.0.0.1 → assume backend is on :8080
 //  3. Otherwise → use the deployed Render backend
 const envUrl = (import.meta.env.VITE_API_URL as string)?.trim();
 export const API_BASE = envUrl
   ? envUrl
-  : window.location.hostname === 'localhost'
+  : (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
     ? `http://localhost:8080`
     : 'https://rh-antigone.onrender.com';
 

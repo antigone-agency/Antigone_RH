@@ -144,6 +144,8 @@
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
                 <configuration>
+                    <mainClass>com.antigone.rh.RhApplication</mainClass>
+                    <useClasspathFile>true</useClasspathFile>
                     <excludes>
                         <exclude>
                             <groupId>org.projectlombok</groupId>

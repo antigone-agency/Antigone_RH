@@ -244,7 +244,7 @@ const RapportsInactivitePage: React.FC = () => {
       {/* Header */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-gray-800 dark:text-white">Rapports d'Inactivité</h1>
+          <h1 className="text-2xl font-extrabold tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-gray-900 to-[#683b77] dark:from-white dark:to-[#ab78c3]">Rapports d'Inactivité</h1>
           <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
             Suivi et gestion des rapports d'inactivité hebdomadaires
           </p>
