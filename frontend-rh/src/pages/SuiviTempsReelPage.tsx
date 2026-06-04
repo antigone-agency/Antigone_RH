@@ -92,7 +92,7 @@ const SuiviTempsReelPage: React.FC = () => {
     <div className="p-6">
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="text-2xl font-bold text-gray-800 dark:text-white">Suivi Temps Réel</h1>
+          <h1 className="text-2xl font-extrabold tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-gray-900 to-[#683b77] dark:from-white dark:to-[#ab78c3]">Suivi Temps Réel</h1>
           <p className="text-sm text-gray-500 mt-1">Mise à jour automatique toutes les 10 secondes</p>
         </div>
       </div>

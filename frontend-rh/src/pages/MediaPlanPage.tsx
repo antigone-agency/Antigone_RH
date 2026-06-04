@@ -1484,7 +1484,7 @@ const MediaPlanPage: React.FC = () => {
             {/* Header */}
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
                 <div>
-                    <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Media Plan</h1>
+                    <h1 className="text-2xl font-extrabold tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-gray-900 to-[#683b77] dark:from-white dark:to-[#ab78c3]">Media Plan</h1>
                     <div className="flex items-center gap-4 mt-1">
                         <p className="text-sm text-gray-500 dark:text-gray-400">
                             Client : <span className="text-brand-500 font-medium">{clientName}</span>

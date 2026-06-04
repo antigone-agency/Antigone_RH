@@ -260,3 +260,15 @@
     @apply bg-gray-200 rounded-full dark:bg-gray-700;
   }
 }
+
+@utility title-gradient {
+  color: transparent;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  -webkit-background-clip: text;
+  background-image: linear-gradient(to right, #111827, #683b77);
+}
+
+.dark .title-gradient {
+  background-image: linear-gradient(to right, #ffffff, #ab78c3);
+}

@@ -129,7 +129,7 @@ const AdminProjectDetailPage: React.FC = () => {
         <div className="flex flex-col lg:flex-row lg:items-start justify-between gap-4">
           <div>
             <div className="flex items-center gap-3 mb-1 flex-wrap">
-              <h1 className="text-2xl font-extrabold text-gray-900 dark:text-white">{detail.projetNom}</h1>
+              <h1 className="text-2xl font-extrabold tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-gray-900 to-[#683b77] dark:from-white dark:to-[#ab78c3]">{detail.projetNom}</h1>
               {/* CORRECTION 5: Different badges for CLOTURE vs CLOTURE_INCOMPLET */}
               <span className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-bold ${statutColors[detail.statut] || ''}`}>
                 {statutLabels[detail.statut] || detail.statut}

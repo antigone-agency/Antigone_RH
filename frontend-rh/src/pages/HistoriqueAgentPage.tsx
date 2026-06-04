@@ -304,7 +304,7 @@ const HistoriqueAgentPage: React.FC = () => {
       {/* Header */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-gray-800 dark:text-white">Historique Agent</h1>
+          <h1 className="text-2xl font-extrabold tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-gray-900 to-[#683b77] dark:from-white dark:to-[#ab78c3]">Historique Agent</h1>
           <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">Consultez l'historique détaillé de présence et d'activité de chaque employé</p>
         </div>
         <div className="flex items-center gap-2">

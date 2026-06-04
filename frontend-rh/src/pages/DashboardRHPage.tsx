@@ -187,7 +187,7 @@ const DashboardRHPage: React.FC = () => {
       {/* =========== HEADER =========== */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-800 dark:text-white">Dashboard RH</h1>
+          <h1 className="text-2xl font-extrabold tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-gray-900 to-[#683b77] dark:from-white dark:to-[#ab78c3]">Dashboard RH</h1>
           <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">Vue globale de toute l'activité RH</p>
         </div>
         <button

@@ -708,7 +708,18 @@ const EmployesPage: React.FC = () => {
       render: (item: Employe) => (
         <div className="flex items-center gap-3">
           {item.imageUrl ? (
-            <img src={`${API_BASE}${item.imageUrl}`} alt="" className="w-8 h-8 rounded-full object-cover" />
+            <img 
+              src={`${API_BASE}${item.imageUrl}`} 
+              alt="" 
+              className="w-8 h-8 rounded-full object-cover" 
+              onError={(e) => {
+                e.currentTarget.style.display = 'none';
+                const parent = e.currentTarget.parentElement;
+                if (parent && !parent.querySelector('.fallback-avatar')) {
+                  parent.insertAdjacentHTML('afterbegin', `<div class="fallback-avatar w-8 h-8 rounded-full bg-secondary-50 text-secondary-500 dark:bg-secondary-500/[0.12] dark:text-secondary-400 flex items-center justify-center text-xs font-semibold">${item.prenom[0]}${item.nom[0]}</div>`);
+                }
+              }}
+            />
           ) : (
             <div className="w-8 h-8 rounded-full bg-secondary-50 text-secondary-500 dark:bg-secondary-500/[0.12] dark:text-secondary-400 flex items-center justify-center text-xs font-semibold">
               {item.prenom[0]}{item.nom[0]}
@@ -819,7 +830,7 @@ const EmployesPage: React.FC = () => {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-title-sm font-bold text-gray-800 dark:text-white">Employés</h1>
+          <h1 className="text-title-sm font-extrabold tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-gray-900 to-[#683b77] dark:from-white dark:to-[#ab78c3]">Employés</h1>
           <p className="text-theme-sm text-gray-500 dark:text-gray-400 mt-1">Gérer les employés de l'agence</p>
         </div>
         <div className="flex items-center gap-2">
@@ -974,7 +985,6 @@ const EmployesPage: React.FC = () => {
           {paginatedEmployes.map((emp, idx) => {
             const avatarBgs = ['bg-violet-500', 'bg-purple-500', 'bg-fuchsia-600', 'bg-indigo-500', 'bg-pink-500'];
             const avatarBg = avatarBgs[(emp.nom?.length ?? 0) % avatarBgs.length];
-            const baseApi = window.location.hostname === 'localhost' ? 'http://localhost:8080' : 'https://rh-antigone.onrender.com';
             return (
               <motion.div
                 key={emp.id}
@@ -991,7 +1001,7 @@ const EmployesPage: React.FC = () => {
                   <div className="absolute -top-11 left-1/2 -translate-x-1/2 w-[88px] h-[88px] rounded-full overflow-hidden border-4 border-white dark:border-gray-900 shadow-md z-10">
                     {emp.imageUrl ? (
                       <img
-                        src={`${baseApi}${emp.imageUrl}`}
+                        src={`${API_BASE}${emp.imageUrl}`}
                         alt=""
                         className="w-full h-full object-cover"
                         onError={(e) => {
@@ -1126,6 +1136,13 @@ const EmployesPage: React.FC = () => {
                 src={imagePreview || `${API_BASE}${editingEmploye?.imageUrl}`}
                 alt="Photo"
                 className="w-full h-full object-cover"
+                onError={(e) => {
+                  e.currentTarget.style.display = 'none';
+                  const parent = e.currentTarget.parentElement;
+                  if (parent && !parent.querySelector('.fallback-icon')) {
+                    parent.insertAdjacentHTML('beforeend', '<div class="fallback-icon w-full h-full flex flex-col items-center justify-center bg-gray-100 dark:bg-gray-700"><svg stroke="currentColor" fill="none" stroke-width="2" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round" class="text-gray-400" height="24" width="24" xmlns="http://www.w3.org/2000/svg"><path d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg></div>');
+                  }
+                }}
               />
             ) : (
               <div className="w-full h-full flex flex-col items-center justify-center bg-gray-100 dark:bg-gray-700">
@@ -1404,7 +1421,18 @@ const EmployesPage: React.FC = () => {
             {/* Header with photo */}
             <div className="flex items-center gap-4 p-4 rounded-xl bg-gray-50 dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700">
               {viewingEmploye.imageUrl ? (
-                <img src={`${API_BASE}${viewingEmploye.imageUrl}`} alt="" className="w-20 h-20 rounded-2xl object-cover" />
+                <img 
+                  src={`${API_BASE}${viewingEmploye.imageUrl}`} 
+                  alt="" 
+                  className="w-20 h-20 rounded-2xl object-cover shrink-0" 
+                  onError={(e) => {
+                    e.currentTarget.style.display = 'none';
+                    const parent = e.currentTarget.parentElement;
+                    if (parent && !parent.querySelector('.fallback-details')) {
+                      parent.insertAdjacentHTML('afterbegin', `<div class="fallback-details w-20 h-20 rounded-2xl bg-secondary-50 text-secondary-500 dark:bg-secondary-500/[0.12] dark:text-secondary-400 flex items-center justify-center text-3xl font-semibold shrink-0">${viewingEmploye.prenom[0]}${viewingEmploye.nom[0]}</div>`);
+                    }
+                  }}
+                />
               ) : (
                 <div className="w-20 h-20 rounded-2xl bg-secondary-50 text-secondary-500 dark:bg-secondary-500/[0.12] dark:text-secondary-400 flex items-center justify-center text-2xl font-semibold">
                   {viewingEmploye.prenom[0]}{viewingEmploye.nom[0]}

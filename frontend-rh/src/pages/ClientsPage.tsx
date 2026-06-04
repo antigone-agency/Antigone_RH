@@ -242,7 +242,7 @@ const ClientsPage: React.FC = () => {
             {/* Header */}
             <div className="flex items-center justify-between flex-wrap gap-3">
                 <div>
-                    <h1 className="text-title-sm font-bold text-gray-800 dark:text-white">Clients</h1>
+                    <h1 className="text-title-sm font-extrabold tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-gray-900 to-[#683b77] dark:from-white dark:to-[#ab78c3]">Clients</h1>
                     <p className="text-theme-sm text-gray-500 dark:text-gray-400 mt-1">Gestion des clients</p>
                 </div>
                 <div className="flex items-center gap-3">

@@ -187,7 +187,7 @@ const ReferentielsPage: React.FC = () => {
     <div className="space-y-6">
       {/* Header */}
       <div>
-        <h1 className="text-title-sm font-bold text-gray-800 dark:text-white">Référentiels</h1>
+        <h1 className="text-title-sm font-extrabold tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-gray-900 to-[#683b77] dark:from-white dark:to-[#ab78c3]">Référentiels</h1>
         <p className="text-theme-sm text-gray-500 dark:text-gray-400 mt-1">
           Gérer les valeurs de référence par catégorie
         </p>

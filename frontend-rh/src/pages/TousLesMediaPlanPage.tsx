@@ -514,7 +514,7 @@ const TousLesMediaPlanPage: React.FC = () => {
             {viewState === 'CLIENTS' && (
                 <div className="space-y-6">
                     <div>
-                        <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Tous les Media Plans</h1>
+                        <h1 className="text-2xl font-extrabold tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-gray-900 to-[#683b77] dark:from-white dark:to-[#ab78c3]">Tous les Media Plans</h1>
                         <p className="text-sm text-gray-500 dark:text-gray-400">Sélectionnez un client pour gérer ses media plans</p>
                     </div>
 
@@ -563,7 +563,7 @@ const TousLesMediaPlanPage: React.FC = () => {
                             >
                                 <HiOutlineArrowLeft size={14} /> Retour aux clients
                             </button>
-                            <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
+                            <h1 className="text-2xl font-extrabold tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-gray-900 to-[#683b77] dark:from-white dark:to-[#ab78c3]">
                                 {clients.find(c => c.id === selectedClientId)?.nom || 'Client Inconnu'}
                             </h1>
                             <p className="text-sm text-gray-500 dark:text-gray-400">Groupes de la ligne de temps</p>
