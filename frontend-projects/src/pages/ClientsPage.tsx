@@ -19,6 +19,7 @@ import {
     HiOutlineRefresh,
 } from 'react-icons/hi';
 import { useAuth } from '../context/AuthContext';
+import { API_BASE } from '../api/axios';
 import { clientService, ClientDTO } from '../api/clientService';
 import Modal from '../components/ui/Modal';
 import Button from '../components/ui/Button';
