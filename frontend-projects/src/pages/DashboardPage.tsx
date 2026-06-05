@@ -24,6 +24,7 @@ import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid,
 } from 'recharts';
 import { useAuth } from '../context/AuthContext';
+import { shouldDisplayNotification } from '../utils/notificationRules';
 import { demandeService } from '../api/demandeService';
 import { demandePapierService } from '../api/demandePapierService';
 import { tacheService } from '../api/tacheService';
@@ -104,7 +105,8 @@ const DashboardPage: React.FC = () => {
       setDemandesPapier(allPapier.filter((d: DemandeResponse) => d.employeId === employeId));
       setTaches(tachesRes.data.data || []);
       setProjets(projetsRes.data.data || []);
-      setNotifications(notifsRes.data.data || []);
+      const rawNotifications = notifsRes.data.data || [];
+      setNotifications(rawNotifications.filter(shouldDisplayNotification));
       setSoldeInfo(soldeRes.data.data || null);
       setCompetences(compsRes.data.data || []);
       setDocuments(docsRes.data.data || []);

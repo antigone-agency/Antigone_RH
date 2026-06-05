@@ -52,6 +52,24 @@ const TypeBadge: React.FC<{ libelle: string }> = ({ libelle }) => {
     );
 };
 
+const DEFAULT_PAPIER_TYPES = [
+    'Attestation de travail',
+    'Ordre de mission',
+    'Attestation de salaire',
+    'Fiche de paie',
+    'Autre',
+];
+
+const buildFallbackPapierTypes = (): Referentiel[] =>
+    DEFAULT_PAPIER_TYPES.map((label, index) => ({
+        id: -(index + 1),
+        libelle: label,
+        description: label,
+        actif: true,
+        typeReferentiel: 'TYPE_DEMANDE',
+        typeReferentielLabel: 'Type demande',
+    }));
+
 const MesDemandesPapierPage: React.FC = () => {
     const { user } = useAuth();
     const [demandes, setDemandes] = useState<DemandeResponse[]>([]);
@@ -113,11 +131,17 @@ const MesDemandesPapierPage: React.FC = () => {
         setNewSuccess(false);
         try {
             const res = await referentielService.getActiveByType('TYPE_DEMANDE');
-            const data = res.data.data || [];
+            let data = res.data.data || [];
+            if (data.length === 0) {
+                data = buildFallbackPapierTypes();
+            }
             setReferentiels(data);
             if (data.length > 0) setSelectedLibelle(data[0].libelle);
         } catch (err) {
             console.error('Erreur chargement types de demande:', err);
+            const fallback = buildFallbackPapierTypes();
+            setReferentiels(fallback);
+            if (fallback.length > 0) setSelectedLibelle(fallback[0].libelle);
         } finally {
             setLoadingRef(false);
         }
@@ -175,8 +199,11 @@ const MesDemandesPapierPage: React.FC = () => {
         if (referentiels.length === 0) {
             try {
                 const res = await referentielService.getActiveByType('TYPE_DEMANDE');
-                setReferentiels(res.data.data || []);
-            } catch { /* ignore */ }
+                const data = res.data.data || [];
+                setReferentiels(data.length === 0 ? buildFallbackPapierTypes() : data);
+            } catch {
+                setReferentiels(buildFallbackPapierTypes());
+            }
         }
     };
 

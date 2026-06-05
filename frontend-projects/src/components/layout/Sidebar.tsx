@@ -40,6 +40,7 @@ import { notificationService } from '../../api/notificationService';
 import { NotificationResponse, Projet } from '../../types';
 import { relayAuthSnapshotForSwitch } from '../../utils/authStorage';
 import './SidebarCanva.css';
+import { getNotificationTarget, shouldDisplayNotification } from '../../utils/notificationRules';
 
 interface NavItemDef {
   key: string;
@@ -437,12 +438,11 @@ const Sidebar: React.FC = () => {
   const fetchNotifications = async () => {
     if (!user?.employeId) return;
     try {
-      const [notifRes, countRes] = await Promise.all([
-        notificationService.getByEmploye(user.employeId),
-        notificationService.getUnreadCount(user.employeId),
-      ]);
-      setNotifications(notifRes.data.data || []);
-      setUnreadCount(countRes.data.data?.count || 0);
+      const notifRes = await notificationService.getByEmploye(user.employeId);
+      const raw = notifRes.data.data || [];
+      const filtered = raw.filter(shouldDisplayNotification);
+      setNotifications(filtered);
+      setUnreadCount(filtered.filter((notif) => !notif.lu).length);
     } catch {
       // ignore fetch errors
     }
@@ -649,32 +649,12 @@ const Sidebar: React.FC = () => {
   const handleNotificationClick = (notif: NotificationResponse) => {
     if (!notif.lu) handleMarkAsRead(notif.id);
 
-    const title = (notif.titre || '').toLowerCase();
-    const isPlanningOrMeeting =
-      Boolean(notif.reunionId) ||
-      title.includes('planification_projet') ||
-      title.includes('planification projet') ||
-      title.includes('reunion') ||
-      title.includes('rÃ©union');
+    const target = getNotificationTarget(notif);
 
-    const isRhRelated =
-      Boolean(notif.demandeId) ||
-      title.includes('demande') ||
-      title.includes('employe') ||
-      title.includes('employÃ©') ||
-      title.includes('subordonne') ||
-      title.includes('subordonnÃ©') ||
-      title.includes('profil') ||
-      title.includes('competence') ||
-      title.includes('compÃ©tence') ||
-      title.includes('document');
-
-    if (isPlanningOrMeeting) {
-      navigate(notif.reunionId ? '/admin/calendrier-projets?tab=reunions' : '/admin/calendrier-projets');
-    } else if (isRhRelated) {
-      switchToRhApp();
+    if (target.kind === 'projects') {
+      navigate(target.path);
     } else {
-      navigate('/accueil');
+      switchToRhApp();
     }
 
     setShowNotifications(false);

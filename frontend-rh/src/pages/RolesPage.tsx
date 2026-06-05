@@ -53,7 +53,7 @@ const RolesPage: React.FC = () => {
     {
       label: 'Calendriers',
       color: '#0891b2',
-      codes: ['VIEW_CALENDRIER', 'VIEW_CALENDRIER_PROJETS', 'VIEW_DEADLINES', 'VIEW_REUNIONS'],
+      codes: ['VIEW_CALENDRIER', 'VIEW_RESTRICTION_CONGE', 'VIEW_CALENDRIER_PROJETS', 'VIEW_DEADLINES', 'VIEW_REUNIONS'],
     },
     {
       label: 'Projets',

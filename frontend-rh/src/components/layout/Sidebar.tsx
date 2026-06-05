@@ -32,6 +32,7 @@ import {
   HiOutlineUserGroup,
   HiOutlineUsers,
   HiOutlineXCircle,
+  HiOutlineExclamation,
   HiX,
 } from 'react-icons/hi';
 import { API_BASE } from '../../api/axios';
@@ -42,6 +43,7 @@ import { useSidebar } from '../../hooks/useSidebar';
 import { useAuth } from '../../context/AuthContext';
 import { useTheme, AppFont, AppFontSize, setSharedCookie } from '../../hooks/useTheme';
 import { NotificationResponse } from '../../types';
+import { getRhNotificationPath, shouldDisplayNotification } from '../../utils/notificationRules';
 import './SidebarCanva.css';
 
 interface NavItemDef {
@@ -119,7 +121,7 @@ const panelGroupsTemplate: Array<{ title: string; items: NavItemDef[]; modes: Ar
           { label: 'Demandes papiers', path: '/demandes/liste-papier' },
         ],
       },
-      { key: 'dashboard-rh', label: 'Dashboard RH', path: '/dashboard-rh', icon: <HiOutlineChartBar size={18} />, permission: 'VIEW_DASHBOARD_RH' },
+      { key: 'dashboard-rh', label: 'Dashboard RH', path: '/dashboard-rh', icon: <HiOutlineChartBar size={18} />, permission: 'VIEW_DASHBOARD' },
       { key: 'departements', label: 'Departements', path: '/admin/departements', icon: <HiOutlineUserGroup size={18} />, permission: 'VIEW_EMPLOYES' },
     ],
   },
@@ -131,6 +133,7 @@ const panelGroupsTemplate: Array<{ title: string; items: NavItemDef[]; modes: Ar
       { key: 'roles', label: 'Roles', path: '/roles', icon: <HiOutlineShieldCheck size={18} />, permission: 'VIEW_ROLES' },
       { key: 'referentiels', label: 'Referentiels', path: '/referentiels', icon: <HiOutlineCollection size={18} />, permission: 'VIEW_REFERENTIELS' },
       { key: 'calendrier', label: 'Calendrier entreprise', path: '/calendrier', icon: <HiOutlineCalendar size={18} />, permission: 'VIEW_CALENDRIER' },
+      { key: 'restrictions-conges', label: 'Restrictions de congés', path: '/restrictions-conges', icon: <HiOutlineExclamation size={18} />, permission: 'VIEW_RESTRICTION_CONGE' },
 
     ],
   },
@@ -169,7 +172,7 @@ const railMainItems: RailItemDef[] = [
     label: 'Gestion RH',
     icon: <HiOutlineUsers size={20} />,
     path: '/employes',
-    permissions: ['VIEW_EMPLOYES', 'VIEW_VALIDATIONS', 'VIEW_DASHBOARD_RH'],
+    permissions: ['VIEW_EMPLOYES', 'VIEW_VALIDATIONS', 'VIEW_DASHBOARD'],
     matchPrefixes: ['/employes', '/organigramme', '/validations', '/demandes', '/dashboard-rh', '/admin/departements'],
     action: 'panel',
     panelMode: 'gestion-rh',
@@ -182,8 +185,8 @@ const railSecondaryItems: RailItemDef[] = [
     label: 'Administration',
     icon: <HiOutlineShieldCheck size={20} />,
     path: '/comptes',
-    permissions: ['VIEW_COMPTES', 'VIEW_ROLES', 'VIEW_REFERENTIELS', 'VIEW_CALENDRIER'],
-    matchPrefixes: ['/comptes', '/roles', '/referentiels', '/calendrier', '/rectifs'],
+    permissions: ['VIEW_COMPTES', 'VIEW_ROLES', 'VIEW_REFERENTIELS', 'VIEW_CALENDRIER', 'VIEW_RESTRICTION_CONGE'],
+    matchPrefixes: ['/comptes', '/roles', '/referentiels', '/calendrier', '/rectifs', '/restrictions-conges'],
     action: 'panel',
     panelMode: 'administration',
   },
@@ -362,12 +365,11 @@ const Sidebar: React.FC = () => {
   const fetchNotifications = async () => {
     if (!user?.employeId) return;
     try {
-      const [notifRes, countRes] = await Promise.all([
-        notificationService.getByEmploye(user.employeId),
-        notificationService.getUnreadCount(user.employeId),
-      ]);
-      setNotifications(notifRes.data.data || []);
-      setUnreadCount(countRes.data.data?.count || 0);
+      const notifRes = await notificationService.getByEmploye(user.employeId);
+      const raw = notifRes.data.data || [];
+      const filtered = raw.filter(shouldDisplayNotification);
+      setNotifications(filtered);
+      setUnreadCount(filtered.filter((notif) => !notif.lu).length);
     } catch {
       // ignore
     }
@@ -507,17 +509,7 @@ const Sidebar: React.FC = () => {
   const handleNotificationClick = (notif: NotificationResponse) => {
     if (!notif.lu) handleMarkAsRead(notif.id);
 
-    const title = (notif.titre || '').toLowerCase();
-
-    if (notif.demandeId || title.includes('demande') || title.includes('conge')) {
-      navigate('/mes-demandes');
-    } else if (title.includes('validation') || title.includes('approuv') || title.includes('refus')) {
-      navigate('/validations');
-    } else if (title.includes('calendrier') || title.includes('reunion')) {
-      navigate('/calendrier');
-    } else {
-      navigate('/dashboard');
-    }
+    navigate(getRhNotificationPath(notif));
 
     setShowNotifications(false);
   };

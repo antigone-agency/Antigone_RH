@@ -9,6 +9,7 @@ import { notificationService } from '../../api/notificationService';
 import { NotificationResponse } from '../../types';
 import { API_BASE } from '../../api/axios';
 import { relayAuthSnapshotForSwitch } from '../../utils/authStorage';
+import { getNotificationTarget, shouldDisplayNotification } from '../../utils/notificationRules';
 
 const Header: React.FC = () => {
   const { user, logout } = useAuth();
@@ -26,11 +27,12 @@ const Header: React.FC = () => {
   const rhAppUrl = (import.meta.env.VITE_RH_APP_URL as string | undefined)?.trim();
   const projectsAppUrl = (import.meta.env.VITE_PROJECTS_APP_URL as string | undefined)?.trim();
 
-  const switchToApp = useCallback((target: 'rh' | 'projects', fallbackPath: string) => {
+  const switchToApp = useCallback((target: 'rh' | 'projects', targetPath: string, fallbackPath: string) => {
     const targetUrl = target === 'rh' ? rhAppUrl : projectsAppUrl;
     if (targetUrl) {
+      const url = new URL(targetPath, targetUrl);
       relayAuthSnapshotForSwitch();
-      window.location.assign(targetUrl);
+      window.location.assign(url.toString());
       return;
     }
 
@@ -40,12 +42,11 @@ const Header: React.FC = () => {
   const fetchNotifications = useCallback(async () => {
     if (!user?.employeId) return;
     try {
-      const [notifRes, countRes] = await Promise.all([
-        notificationService.getByEmploye(user.employeId),
-        notificationService.getUnreadCount(user.employeId),
-      ]);
-      setNotifications(notifRes.data.data || []);
-      setUnreadCount(countRes.data.data?.count || 0);
+      const notifRes = await notificationService.getByEmploye(user.employeId);
+      const raw = notifRes.data.data || [];
+      const filtered = raw.filter(shouldDisplayNotification);
+      setNotifications(filtered);
+      setUnreadCount(filtered.filter((notif) => !notif.lu).length);
     } catch {
       // Silently fail
     }
@@ -101,48 +102,22 @@ const Header: React.FC = () => {
   const handleNotifClick = (notif: NotificationResponse) => {
     if (!notif.lu) handleMarkAsRead(notif.id);
 
-    const titre = notif.titre || '';
-    const lowerTitre = titre.toLowerCase();
-
-    const isPlanningOrReunion =
-      Boolean(notif.reunionId) ||
-      lowerTitre.includes('planification_projet') ||
-      lowerTitre.includes('planification projet') ||
-      lowerTitre.includes('réunion') ||
-      lowerTitre.includes('reunion');
-
-    const isRhNotification =
-      Boolean(notif.demandeId) ||
-      lowerTitre.includes('demande') ||
-      lowerTitre.includes('employé') ||
-      lowerTitre.includes('employe') ||
-      lowerTitre.includes('subordonné') ||
-      lowerTitre.includes('subordonne') ||
-      lowerTitre.includes('profil') ||
-      lowerTitre.includes('compétence') ||
-      lowerTitre.includes('competence') ||
-      lowerTitre.includes('document');
+    const target = getNotificationTarget(notif);
 
     if (appKind === 'rh') {
-      if (isPlanningOrReunion) {
-        switchToApp('projects', '/dashboard');
-      } else if (notif.demandeId || lowerTitre.includes('demande')) {
-        navigate('/mes-demandes');
-      } else if (isRhNotification) {
-        navigate('/employes');
+      if (target.kind === 'projects') {
+        switchToApp('projects', target.path, '/dashboard');
       } else {
-        navigate('/dashboard');
+        navigate(target.path);
       }
       setShowNotifications(false);
       return;
     }
 
-    if (isPlanningOrReunion) {
-      navigate(notif.reunionId ? '/admin/calendrier-projets?tab=reunions' : '/admin/calendrier-projets');
-    } else if (isRhNotification) {
-      switchToApp('rh', '/projets');
+    if (target.kind === 'projects') {
+      navigate(target.path);
     } else {
-      navigate('/projets');
+      switchToApp('rh', target.path, '/projets');
     }
 
     setShowNotifications(false);

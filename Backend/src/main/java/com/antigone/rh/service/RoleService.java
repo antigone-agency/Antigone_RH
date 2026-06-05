@@ -36,6 +36,7 @@ public class RoleService {
                     "Monitoring — Suivre la présence et l'activité des utilisateurs en temps réel"),
             // ── Calendriers ─────────────────────────────────────────────────
             Map.entry("VIEW_CALENDRIER", "Calendrier d'entreprise — Consulter les événements et jours fériés globaux"),
+            Map.entry("VIEW_RESTRICTION_CONGE", "Restrictions de congés — Définir et gérer les restrictions de dates de congés des collaborateurs"),
             Map.entry("VIEW_CALENDRIER_PROJETS", "Calendrier de tournage — Planification des shootings et productions"),
             Map.entry("VIEW_DEADLINES", "Calendrier des deadlines — Consulter les échéances des projets et tâches"),
             Map.entry("VIEW_REUNIONS", "Réunions — Voir, créer et planifier les réunions d'équipe"),

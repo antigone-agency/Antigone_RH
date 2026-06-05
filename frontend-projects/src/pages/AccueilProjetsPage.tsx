@@ -15,6 +15,7 @@ import {
 } from 'react-icons/hi';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { shouldDisplayNotification } from '../utils/notificationRules';
 import { notificationService } from '../api/notificationService';
 import { projetService } from '../api/projetService';
 import { tacheService } from '../api/tacheService';
@@ -218,7 +219,8 @@ const AccueilProjetsPage: React.FC = () => {
 
         setProjets(activeProjets);
         setTaches(activeTaches);
-        setNotifications(notificationsRes.data.data || []);
+        const rawNotifications = notificationsRes.data.data || [];
+        setNotifications(rawNotifications.filter(shouldDisplayNotification));
       } catch (error) {
         console.error('Erreur chargement accueil projets:', error);
       } finally {

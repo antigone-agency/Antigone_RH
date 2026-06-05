@@ -18,6 +18,7 @@ import { employeService } from '../api/employeService';
 import { validationService } from '../api/validationService';
 import { useAuth } from '../context/AuthContext';
 import { GradientRhCard } from '../components/ui/GradientRhCard';
+import { shouldDisplayNotification } from '../utils/notificationRules';
 import {
   CalendrierJour,
   DecisionValidation,
@@ -151,7 +152,8 @@ const DashboardPage: React.FC = () => {
       setDemandes(demandesRes.data.data || []);
       setDemandesPapier(allPapier.filter((d: DemandeResponse) => d.employeId === employeId));
       setTaches(tachesRes.data.data || []);
-      setNotifications(notificationsRes.data.data || []);
+      const rawNotifications = notificationsRes.data.data || [];
+      setNotifications(rawNotifications.filter(shouldDisplayNotification));
       setDocuments(documentsRes.data.data || []);
       setValidations(validationsRes.data.data || []);
       setJoursFeries(feriesRes.data.data || []);

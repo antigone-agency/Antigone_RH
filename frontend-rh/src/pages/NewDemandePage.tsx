@@ -4,7 +4,7 @@ import { demandeService } from '../api/demandeService';
 import { referentielService } from '../api/referentielService';
 import { calendrierService } from '../api/calendrierService';
 import { employeService } from '../api/employeService';
-import { TypeDemande, Referentiel, CalendrierJour, HoraireTravail, CalculateDaysResult, SoldeCongeInfo, EmployeHoraire } from '../types';
+import { TypeDemande, TypeConge, TypeCongeLabels, Referentiel, CalendrierJour, HoraireTravail, CalculateDaysResult, SoldeCongeInfo, EmployeHoraire } from '../types';
 import Button from '../components/ui/Button';
 import { useAuth } from '../context/AuthContext';
 import { HiOutlineChevronLeft, HiOutlineChevronRight, HiOutlineCheckCircle } from 'react-icons/hi';
@@ -30,6 +30,16 @@ const JOUR_TO_SHORT: Record<string, string> = {
   VENDREDI: 'Vendredi',
   SAMEDI: 'Samedi',
 };
+
+const buildFallbackCongeTypes = (): Referentiel[] =>
+  Object.values(TypeConge).map((value, index) => ({
+    id: -(index + 1),
+    libelle: value,
+    description: TypeCongeLabels[value],
+    actif: true,
+    typeReferentiel: 'TYPE_CONGE',
+    typeReferentielLabel: 'Type congé',
+  }));
 
 /**
  * Find the applicable horaire for a given date string (YYYY-MM-DD).
@@ -449,6 +459,9 @@ const NewDemandePage: React.FC = () => {
           } catch { /* ignore */ }
         }
         let types: Referentiel[] = congeRes.data.data || [];
+        if (types.length === 0) {
+          types = buildFallbackCongeTypes();
+        }
 
         // Gender-based filtering
         if (user?.genre) {
@@ -469,6 +482,11 @@ const NewDemandePage: React.FC = () => {
         setAllHoraires(horairesRes.data.data || []);
       } catch (err) {
         console.error('Erreur chargement données:', err);
+        const fallbackTypes = buildFallbackCongeTypes();
+        setCongeTypes(fallbackTypes);
+        if (fallbackTypes.length > 0 && !typeConge) {
+          setTypeConge(fallbackTypes[0].libelle);
+        }
       }
     };
     loadData();

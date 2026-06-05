@@ -12,6 +12,7 @@ import DemandesPapierPage from './pages/DemandesPapierPage';
 import ValidationsPage from './pages/ValidationsPage';
 import ReferentielsPage from './pages/ReferentielsPage';
 import CalendrierPage from './pages/CalendrierPage';
+import RestrictionsCongesPage from './pages/RestrictionsCongesPage';
 import ComptesPage from './pages/ComptesPage';
 import RolesPage from './pages/RolesPage';
 import ChangePasswordPage from './pages/ChangePasswordPage';
@@ -79,6 +80,7 @@ const App: React.FC = () => {
           <Route path="validations" element={<PermissionRoute permission="VIEW_VALIDATIONS"><ValidationsPage /></PermissionRoute>} />
           <Route path="referentiels" element={<PermissionRoute permission="VIEW_REFERENTIELS"><ReferentielsPage /></PermissionRoute>} />
           <Route path="calendrier" element={<PermissionRoute permission="VIEW_CALENDRIER"><CalendrierPage /></PermissionRoute>} />
+          <Route path="restrictions-conges" element={<PermissionRoute permission="VIEW_RESTRICTION_CONGE"><RestrictionsCongesPage /></PermissionRoute>} />
           <Route path="mon-calendrier" element={<MonCalendrierPage />} />
           <Route path="comptes" element={<PermissionRoute permission="VIEW_COMPTES"><ComptesPage /></PermissionRoute>} />
           <Route path="roles" element={<PermissionRoute permission="VIEW_ROLES"><RolesPage /></PermissionRoute>} />
@@ -86,7 +88,7 @@ const App: React.FC = () => {
           <Route path="suivi-temps-reel" element={<PermissionRoute permission="VIEW_MONITORING"><SuiviTempsReelPage /></PermissionRoute>} />
           <Route path="rapports-inactivite" element={<PermissionRoute permission="VIEW_MONITORING"><RapportsInactivitePage /></PermissionRoute>} />
           <Route path="historique-agent" element={<PermissionRoute permission="VIEW_MONITORING"><HistoriqueAgentPage /></PermissionRoute>} />
-          <Route path="dashboard-rh" element={<PermissionRoute permission="VIEW_DASHBOARD_RH"><DashboardRHPage /></PermissionRoute>} />
+          <Route path="dashboard-rh" element={<PermissionRoute permission="VIEW_DASHBOARD"><DashboardRHPage /></PermissionRoute>} />
           <Route path="admin/departements" element={<PermissionRoute permission="VIEW_EMPLOYES"><DepartementsPage /></PermissionRoute>} />
 
         </Route>
