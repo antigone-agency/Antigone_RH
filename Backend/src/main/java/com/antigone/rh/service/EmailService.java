@@ -81,29 +81,29 @@ public class EmailService {
         <head>
           <meta charset="UTF-8">
           <meta name="viewport" content="width=device-width, initial-scale=1.0">
-          <title>Antigone RH - Identifiants</title>
+          <title>Antigone RH - Vos identifiants de connexion</title>
         </head>
-        <body style="margin:0; padding:0; background-color:#f4f5f7; font-family:'Segoe UI',Roboto,Helvetica,Arial,sans-serif;">
-          <table role="presentation" width="100%%" cellpadding="0" cellspacing="0" style="background-color:#f4f5f7; padding:40px 0;">
+        <body style="margin:0; padding:0; background-color:#f8fafc; font-family:'Segoe UI',Roboto,Helvetica,Arial,sans-serif;">
+          <table role="presentation" width="100%%" cellpadding="0" cellspacing="0" style="background-color:#f8fafc; padding:40px 0;">
             <tr>
               <td align="center">
-                <table role="presentation" width="600" cellpadding="0" cellspacing="0" style="max-width:600px; width:100%%;">
-
+                <table role="presentation" width="600" cellpadding="0" cellspacing="0" style="max-width:600px; width:100%%; background-color:#ffffff; border:1px solid #e2e8f0; border-radius:16px; box-shadow:0 4px 6px -1px rgba(0,0,0,0.05);">
+                  
                   <!-- HEADER -->
                   <tr>
-                    <td style="background: linear-gradient(135deg, #f36904 0%%, #cc5500 100%%); border-radius:16px 16px 0 0; padding:36px 40px; text-align:center;">
+                    <td style="background-color:#683b77; background:linear-gradient(135deg, #683b77 0%%, #8a4f9e 100%%); border-radius:15px 15px 0 0; padding:40px 40px; text-align:center;">
                       <table role="presentation" width="100%%" cellpadding="0" cellspacing="0">
                         <tr>
                           <td align="center">
-                            <div style="width:56px; height:56px; background-color:rgba(255,255,255,0.2); border-radius:14px; display:inline-block; line-height:56px; margin-bottom:16px;">
-                              <span style="font-size:28px; color:#ffffff;">&#128188;</span>
+                            <div style="width:56px; height:56px; background-color:rgba(255,255,255,0.15); border-radius:14px; display:inline-block; line-height:56px; margin-bottom:16px; text-align:center;">
+                              <span style="font-size:28px; color:#ffffff; vertical-align:middle; line-height:56px;">&#128188;</span>
                             </div>
                           </td>
                         </tr>
                         <tr>
                           <td align="center">
-                            <h1 style="margin:0; font-size:28px; font-weight:800; color:#ffffff; letter-spacing:-0.5px; text-shadow:0 2px 4px rgba(0,0,0,0.3);">Antigone RH</h1>
-                            <p style="margin:8px 0 0; font-size:14px; color:#ffffff; font-weight:500; text-shadow:0 1px 3px rgba(0,0,0,0.2);">Gestion des Ressources Humaines</p>
+                            <h1 style="margin:0; font-size:26px; font-weight:800; color:#ffffff; letter-spacing:-0.5px;">Antigone RH</h1>
+                            <p style="margin:6px 0 0; font-size:14px; color:#f3e8ff; font-weight:500;">Gestion des Ressources Humaines</p>
                           </td>
                         </tr>
                       </table>
@@ -112,45 +112,31 @@ public class EmailService {
 
                   <!-- BODY -->
                   <tr>
-                    <td style="background-color:#ffffff; padding:40px;">
-
-                      <!-- Greeting -->
-                      <p style="margin:0 0 8px; font-size:20px; font-weight:600; color:#1a1a2e;">
+                    <td style="padding:40px 40px 30px; background-color:#ffffff;">
+                      <h2 style="margin:0 0 12px; font-size:20px; font-weight:700; color:#0f172a;">
                         Bonjour %s 👋
-                      </p>
-                      <p style="margin:0 0 28px; font-size:15px; color:#64748b; line-height:1.6;">
-                        Votre compte a été créé avec succès sur la plateforme <strong style="color:#f36904;">Antigone RH</strong>. Vous trouverez ci-dessous vos identifiants de connexion.
+                      </h2>
+                      <p style="margin:0 0 24px; font-size:15px; color:#475569; line-height:1.6;">
+                        Votre compte a été créé avec succès sur la plateforme <strong style="color:#683b77;">Antigone RH</strong>. Vous trouverez ci-dessous vos identifiants pour vous connecter.
                       </p>
 
                       <!-- Credentials Card -->
-                      <table role="presentation" width="100%%" cellpadding="0" cellspacing="0" style="background-color:#fff8f2; border:1px solid #ffddc2; border-radius:12px; overflow:hidden;">
+                      <table role="presentation" width="100%%" cellpadding="0" cellspacing="0" style="background-color:#faf8fc; border:1px solid #f3ebf7; border-radius:12px; overflow:hidden;">
                         <tr>
-                          <td style="padding:6px 24px 0; border-bottom:none;">
-                            <table role="presentation" width="100%%" cellpadding="0" cellspacing="0">
-                              <tr>
-                                <td style="padding:18px 0 14px;">
-                                  <p style="margin:0 0 4px; font-size:11px; font-weight:600; color:#a64400; text-transform:uppercase; letter-spacing:1px;">Nom d'utilisateur</p>
-                                  <p style="margin:0; font-size:18px; font-weight:700; color:#1a1a2e; font-family:'Courier New',Courier,monospace; letter-spacing:0.5px;">%s</p>
-                                </td>
-                              </tr>
-                            </table>
+                          <td style="padding:20px 24px 16px;">
+                            <p style="margin:0 0 6px; font-size:12px; font-weight:700; color:#683b77; text-transform:uppercase; letter-spacing:1px;">Nom d'utilisateur</p>
+                            <p style="margin:0; font-size:18px; font-weight:700; color:#0f172a; font-family:'Courier New',Courier,monospace; letter-spacing:0.5px;">%s</p>
                           </td>
                         </tr>
                         <tr>
                           <td style="padding:0 24px;">
-                            <div style="height:1px; background-color:#ffddc2;"></div>
+                            <div style="height:1px; background-color:#f0e6f5;"></div>
                           </td>
                         </tr>
                         <tr>
-                          <td style="padding:0 24px 6px;">
-                            <table role="presentation" width="100%%" cellpadding="0" cellspacing="0">
-                              <tr>
-                                <td style="padding:14px 0 18px;">
-                                  <p style="margin:0 0 4px; font-size:11px; font-weight:600; color:#a64400; text-transform:uppercase; letter-spacing:1px;">Mot de passe</p>
-                                  <p style="margin:0; font-size:18px; font-weight:700; color:#1a1a2e; font-family:'Courier New',Courier,monospace; letter-spacing:0.5px;">%s</p>
-                                </td>
-                              </tr>
-                            </table>
+                          <td style="padding:16px 24px 20px;">
+                            <p style="margin:0 0 6px; font-size:12px; font-weight:700; color:#683b77; text-transform:uppercase; letter-spacing:1px;">Mot de passe provisoire</p>
+                            <p style="margin:0; font-size:18px; font-weight:700; color:#0f172a; font-family:'Courier New',Courier,monospace; letter-spacing:0.5px;">%s</p>
                           </td>
                         </tr>
                       </table>
@@ -158,29 +144,28 @@ public class EmailService {
                       <!-- Warning -->
                       <table role="presentation" width="100%%" cellpadding="0" cellspacing="0" style="margin-top:24px;">
                         <tr>
-                          <td style="background-color:#fef3cd; border-left:4px solid #f59e0b; border-radius:0 8px 8px 0; padding:14px 18px;">
-                            <p style="margin:0; font-size:13px; color:#92400e; line-height:1.5;">
-                              &#9888;&#65039; <strong>Important :</strong> Veuillez changer votre mot de passe lors de votre première connexion pour des raisons de sécurité.
+                          <td style="background-color:#fffbeb; border-left:4px solid #f59e0b; border-radius:4px; padding:14px 18px;">
+                            <p style="margin:0; font-size:13px; color:#b45309; line-height:1.5; font-weight:500;">
+                              &#9888;&#65039; <strong>Important :</strong> Pour des raisons de sécurité, veuillez modifier votre mot de passe dès votre première connexion.
                             </p>
                           </td>
                         </tr>
                       </table>
-
                     </td>
                   </tr>
 
                   <!-- FOOTER -->
                   <tr>
-                    <td style="background-color:#f8fafc; border-top:1px solid #e2e8f0; border-radius:0 0 16px 16px; padding:28px 40px; text-align:center;">
-                      <p style="margin:0 0 6px; font-size:13px; color:#94a3b8;">
-                        Cet email a été envoyé automatiquement par
+                    <td style="background-color:#f8fafc; border-top:1px solid #f1f5f9; border-radius:0 0 15px 15px; padding:32px 40px; text-align:center;">
+                      <p style="margin:0 0 8px; font-size:12px; color:#64748b; line-height:1.5;">
+                        Cet email a été envoyé automatiquement par la plateforme
                       </p>
-                      <p style="margin:0 0 16px; font-size:14px; font-weight:600; color:#f36904;">
+                      <p style="margin:0 0 16px; font-size:14px; font-weight:700; color:#683b77;">
                         Antigone RH
                       </p>
                       <div style="height:1px; background-color:#e2e8f0; margin:0 40px 16px;"></div>
-                      <p style="margin:0; font-size:11px; color:#cbd5e1;">
-                        &copy; 2025 Antigone RH. Tous droits réservés.
+                      <p style="margin:0; font-size:11px; color:#94a3b8;">
+                        &copy; 2026 Antigone RH. Tous droits réservés.
                       </p>
                     </td>
                   </tr>
@@ -202,29 +187,29 @@ public class EmailService {
         <head>
           <meta charset="UTF-8">
           <meta name="viewport" content="width=device-width, initial-scale=1.0">
-          <title>Antigone RH - Réinitialisation</title>
+          <title>Antigone RH - Réinitialisation du mot de passe</title>
         </head>
-        <body style="margin:0; padding:0; background-color:#f4f5f7; font-family:'Segoe UI',Roboto,Helvetica,Arial,sans-serif;">
-          <table role="presentation" width="100%%" cellpadding="0" cellspacing="0" style="background-color:#f4f5f7; padding:40px 0;">
+        <body style="margin:0; padding:0; background-color:#f8fafc; font-family:'Segoe UI',Roboto,Helvetica,Arial,sans-serif;">
+          <table role="presentation" width="100%%" cellpadding="0" cellspacing="0" style="background-color:#f8fafc; padding:40px 0;">
             <tr>
               <td align="center">
-                <table role="presentation" width="600" cellpadding="0" cellspacing="0" style="max-width:600px; width:100%%;">
-
+                <table role="presentation" width="600" cellpadding="0" cellspacing="0" style="max-width:600px; width:100%%; background-color:#ffffff; border:1px solid #e2e8f0; border-radius:16px; box-shadow:0 4px 6px -1px rgba(0,0,0,0.05);">
+                  
                   <!-- HEADER -->
                   <tr>
-                    <td style="background: linear-gradient(135deg, #f36904 0%%, #cc5500 100%%); border-radius:16px 16px 0 0; padding:36px 40px; text-align:center;">
+                    <td style="background-color:#683b77; background:linear-gradient(135deg, #683b77 0%%, #8a4f9e 100%%); border-radius:15px 15px 0 0; padding:40px 40px; text-align:center;">
                       <table role="presentation" width="100%%" cellpadding="0" cellspacing="0">
                         <tr>
                           <td align="center">
-                            <div style="width:56px; height:56px; background-color:rgba(255,255,255,0.2); border-radius:14px; display:inline-block; line-height:56px; margin-bottom:16px;">
-                              <span style="font-size:28px; color:#ffffff;">&#128274;</span>
+                            <div style="width:56px; height:56px; background-color:rgba(255,255,255,0.15); border-radius:14px; display:inline-block; line-height:56px; margin-bottom:16px; text-align:center;">
+                              <span style="font-size:28px; color:#ffffff; vertical-align:middle; line-height:56px;">&#128274;</span>
                             </div>
                           </td>
                         </tr>
                         <tr>
                           <td align="center">
-                            <h1 style="margin:0; font-size:28px; font-weight:800; color:#ffffff; letter-spacing:-0.5px; text-shadow:0 2px 4px rgba(0,0,0,0.3);">Antigone RH</h1>
-                            <p style="margin:8px 0 0; font-size:14px; color:#ffffff; font-weight:500; text-shadow:0 1px 3px rgba(0,0,0,0.2);">Réinitialisation du mot de passe</p>
+                            <h1 style="margin:0; font-size:26px; font-weight:800; color:#ffffff; letter-spacing:-0.5px;">Antigone RH</h1>
+                            <p style="margin:6px 0 0; font-size:14px; color:#f3e8ff; font-weight:500;">Réinitialisation du mot de passe</p>
                           </td>
                         </tr>
                       </table>
@@ -233,20 +218,19 @@ public class EmailService {
 
                   <!-- BODY -->
                   <tr>
-                    <td style="background-color:#ffffff; padding:40px;">
-
-                      <p style="margin:0 0 8px; font-size:20px; font-weight:600; color:#1a1a2e;">
-                        Bonjour %s &#128075;
-                      </p>
-                      <p style="margin:0 0 28px; font-size:15px; color:#64748b; line-height:1.6;">
-                        Vous avez demandé la réinitialisation de votre mot de passe sur <strong style="color:#f36904;">Antigone RH</strong>. Cliquez sur le bouton ci-dessous pour définir un nouveau mot de passe.
+                    <td style="padding:40px 40px 30px; background-color:#ffffff;">
+                      <h2 style="margin:0 0 12px; font-size:20px; font-weight:700; color:#0f172a;">
+                        Bonjour %s 👋
+                      </h2>
+                      <p style="margin:0 0 24px; font-size:15px; color:#475569; line-height:1.6;">
+                        Vous avez demandé la réinitialisation de votre mot de passe sur la plateforme <strong style="color:#683b77;">Antigone RH</strong>. Cliquez sur le bouton ci-dessous pour définir un nouveau mot de passe.
                       </p>
 
                       <!-- CTA Button -->
-                      <table role="presentation" width="100%%" cellpadding="0" cellspacing="0" style="margin-bottom:28px;">
+                      <table role="presentation" width="100%%" cellpadding="0" cellspacing="0" style="margin:28px 0;">
                         <tr>
                           <td align="center">
-                            <a href="%s" style="display:inline-block; padding:14px 36px; background:linear-gradient(135deg, #f36904 0%%, #cc5500 100%%); color:#ffffff; font-size:16px; font-weight:700; text-decoration:none; border-radius:10px; box-shadow:0 4px 12px rgba(243,105,4,0.4);">
+                            <a href="%s" style="display:inline-block; padding:14px 36px; background-color:#683b77; background:linear-gradient(135deg, #683b77 0%%, #8a4f9e 100%%); color:#ffffff !important; font-size:15px; font-weight:700; text-decoration:none; border-radius:10px; box-shadow:0 4px 12px rgba(104,59,119,0.3); border:1px solid #683b77;">
                               Réinitialiser mon mot de passe
                             </a>
                           </td>
@@ -254,37 +238,36 @@ public class EmailService {
                       </table>
 
                       <!-- Warning -->
-                      <table role="presentation" width="100%%" cellpadding="0" cellspacing="0" style="margin-top:8px;">
+                      <table role="presentation" width="100%%" cellpadding="0" cellspacing="0" style="margin-top:24px;">
                         <tr>
-                          <td style="background-color:#fef3cd; border-left:4px solid #f59e0b; border-radius:0 8px 8px 0; padding:14px 18px;">
-                            <p style="margin:0; font-size:13px; color:#92400e; line-height:1.5;">
-                              &#9888;&#65039; Ce lien est valable <strong>30 minutes</strong>. Si vous n'avez pas demandé cette réinitialisation, ignorez cet email.
+                          <td style="background-color:#fffbeb; border-left:4px solid #f59e0b; border-radius:4px; padding:14px 18px;">
+                            <p style="margin:0; font-size:13px; color:#b45309; line-height:1.5; font-weight:500;">
+                              &#9888;&#65039; Ce lien est valable pendant <strong>30 minutes</strong>. Si vous n'êtes pas à l'origine de cette demande, vous pouvez ignorer cet email en toute sécurité.
                             </p>
                           </td>
                         </tr>
                       </table>
 
                       <!-- Fallback link -->
-                      <p style="margin:24px 0 0; font-size:12px; color:#94a3b8; line-height:1.5;">
-                        Si le bouton ne fonctionne pas, copiez ce lien dans votre navigateur :<br/>
-                        <a href="%s" style="color:#f36904; word-break:break-all;">%s</a>
+                      <p style="margin:28px 0 0; font-size:12px; color:#94a3b8; line-height:1.6;">
+                        Si le bouton ne fonctionne pas, copiez et collez ce lien dans votre navigateur :<br/>
+                        <a href="%s" style="color:#683b77; text-decoration:underline; word-break:break-all;">%s</a>
                       </p>
-
                     </td>
                   </tr>
 
                   <!-- FOOTER -->
                   <tr>
-                    <td style="background-color:#f8fafc; border-top:1px solid #e2e8f0; border-radius:0 0 16px 16px; padding:28px 40px; text-align:center;">
-                      <p style="margin:0 0 6px; font-size:13px; color:#94a3b8;">
-                        Cet email a été envoyé automatiquement par
+                    <td style="background-color:#f8fafc; border-top:1px solid #f1f5f9; border-radius:0 0 15px 15px; padding:32px 40px; text-align:center;">
+                      <p style="margin:0 0 8px; font-size:12px; color:#64748b; line-height:1.5;">
+                        Cet email a été envoyé automatiquement par la plateforme
                       </p>
-                      <p style="margin:0 0 16px; font-size:14px; font-weight:600; color:#f36904;">
+                      <p style="margin:0 0 16px; font-size:14px; font-weight:700; color:#683b77;">
                         Antigone RH
                       </p>
                       <div style="height:1px; background-color:#e2e8f0; margin:0 40px 16px;"></div>
-                      <p style="margin:0; font-size:11px; color:#cbd5e1;">
-                        &copy; 2025 Antigone RH. Tous droits réservés.
+                      <p style="margin:0; font-size:11px; color:#94a3b8;">
+                        &copy; 2026 Antigone RH. Tous droits réservés.
                       </p>
                     </td>
                   </tr>
