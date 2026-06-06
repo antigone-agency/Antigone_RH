@@ -32,7 +32,7 @@ import java.util.*;
 @Slf4j
 public class ClientViewerDriveService {
 
-    @Value("${app.google.drive.client-viewer-key-path:client-viewer-service-account.json}")
+    @Value("${app.google.drive.client-viewer-key-path:/etc/secrets/client-viewer-service-account.json}")
     private String viewerKeyPath;
 
     @Value("${app.google.drive.parent-folder-id:}")
