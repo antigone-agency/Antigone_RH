@@ -1,17 +1,22 @@
 'use client';
 import React, { useRef, useState } from 'react';
 import { motion } from 'framer-motion';
+import { useTheme } from '../../hooks/useTheme';
 
 type CardVariant = 'default' | 'ferie' | 'document';
 
 const THEME: Record<CardVariant, {
   badgeBg: string; badgeText: string; badgeBorder: string;
+  darkBadgeBg: string; darkBadgeText: string; darkBadgeBorder: string;
   hoverGradient: string; hoverShadow: string;
 }> = {
   default: {
     badgeBg:      'rgba(104,59,119,0.09)',
     badgeText:    '#683b77',
     badgeBorder:  'rgba(104,59,119,0.25)',
+    darkBadgeBg:  'rgba(171,120,195,0.15)',
+    darkBadgeText: '#ab78c3',
+    darkBadgeBorder: 'rgba(171,120,195,0.35)',
     hoverGradient:'linear-gradient(135deg, #683b77 0%, #9b5db0 60%, #ab78c3 100%)',
     hoverShadow:  '0 20px 60px rgba(104,59,119,0.35), 0 4px 16px rgba(104,59,119,0.2)',
   },
@@ -19,6 +24,9 @@ const THEME: Record<CardVariant, {
     badgeBg:      'rgba(245,158,11,0.1)',
     badgeText:    '#92400e',
     badgeBorder:  'rgba(245,158,11,0.35)',
+    darkBadgeBg:  'rgba(245,158,11,0.15)',
+    darkBadgeText: '#fbbf24',
+    darkBadgeBorder: 'rgba(245,158,11,0.35)',
     hoverGradient:'linear-gradient(135deg, #683b77 0%, #9b5db0 60%, #ab78c3 100%)',
     hoverShadow:  '0 20px 60px rgba(104,59,119,0.35), 0 4px 16px rgba(104,59,119,0.2)',
   },
@@ -26,6 +34,9 @@ const THEME: Record<CardVariant, {
     badgeBg:      'rgba(56,130,220,0.09)',
     badgeText:    '#1d6fa4',
     badgeBorder:  'rgba(56,130,220,0.25)',
+    darkBadgeBg:  'rgba(56,130,220,0.15)',
+    darkBadgeText: '#38bdf8',
+    darkBadgeBorder: 'rgba(56,130,220,0.35)',
     hoverGradient:'linear-gradient(135deg, #683b77 0%, #9b5db0 60%, #ab78c3 100%)',
     hoverShadow:  '0 20px 60px rgba(104,59,119,0.35), 0 4px 16px rgba(104,59,119,0.2)',
   },
@@ -48,6 +59,8 @@ export const GradientRhCard: React.FC<GradientRhCardProps> = ({
   onClick,
   variant = 'default',
 }) => {
+  const { theme } = useTheme();
+  const isDark = theme === 'dark';
   const t = THEME[variant];
   const cardRef = useRef<HTMLDivElement>(null);
   const [isHovered, setIsHovered] = useState(false);
@@ -85,15 +98,17 @@ export const GradientRhCard: React.FC<GradientRhCardProps> = ({
         rotateY: rotation.y,
         boxShadow: isHovered
           ? t.hoverShadow
-          : '0 2px 8px rgba(0,0,0,0.06), 0 0 0 1px rgba(0,0,0,0.07)',
+          : isDark
+            ? '0 4px 20px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(255, 255, 255, 0.08)'
+            : '0 2px 8px rgba(0,0,0,0.06), 0 0 0 1px rgba(0,0,0,0.07)',
       }}
       transition={{ type: 'spring', stiffness: 320, damping: 22 }}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={handleMouseLeave}
       onMouseMove={handleMouseMove}
     >
-      {/* Fond blanc */}
-      <div className="absolute inset-0" style={{ background: '#ffffff', zIndex: 0 }} />
+      {/* Fond blanc ou sombre */}
+      <div className="absolute inset-0 transition-colors duration-300" style={{ background: isDark ? '#1e1b29' : '#ffffff', zIndex: 0 }} />
 
       {/* Overlay coloré qui apparaît au hover */}
       <motion.div
@@ -117,8 +132,11 @@ export const GradientRhCard: React.FC<GradientRhCardProps> = ({
       {/* Bordure fine — visible au repos, invisible au hover */}
       <motion.div
         className="absolute inset-0 pointer-events-none rounded-2xl"
-        style={{ zIndex: 3, border: '1px solid rgba(0,0,0,0.08)' }}
-        animate={{ opacity: isHovered ? 0 : 1 }}
+        style={{ zIndex: 3 }}
+        animate={{
+          opacity: isHovered ? 0 : 1,
+          border: isDark ? '1px solid rgba(255,255,255,0.08)' : '1px solid rgba(0,0,0,0.08)'
+        }}
         transition={{ duration: 0.2 }}
       />
 
@@ -132,7 +150,11 @@ export const GradientRhCard: React.FC<GradientRhCardProps> = ({
             style={{ border: '1px solid', display: 'inline-block' }}
             animate={isHovered
               ? { backgroundColor: 'rgba(255,255,255,0.2)', color: '#ffffff', borderColor: 'rgba(255,255,255,0.38)' }
-              : { backgroundColor: t.badgeBg, color: t.badgeText, borderColor: t.badgeBorder }
+              : {
+                  backgroundColor: isDark ? t.darkBadgeBg : t.badgeBg,
+                  color: isDark ? t.darkBadgeText : t.badgeText,
+                  borderColor: isDark ? t.darkBadgeBorder : t.badgeBorder
+                }
             }
             transition={{ duration: 0.3 }}
           >
@@ -144,7 +166,7 @@ export const GradientRhCard: React.FC<GradientRhCardProps> = ({
         <motion.h3
           className="font-bold flex-1"
           style={{ fontSize: '16px', letterSpacing: '-0.01em', lineHeight: 1.35 }}
-          animate={{ color: isHovered ? '#ffffff' : '#1a1814' }}
+          animate={{ color: isHovered ? '#ffffff' : (isDark ? '#f4f3f7' : '#1a1814') }}
           transition={{ duration: 0.3 }}
         >
           {title}
@@ -154,7 +176,7 @@ export const GradientRhCard: React.FC<GradientRhCardProps> = ({
         <motion.p
           className="text-xs mt-2 mb-5"
           style={{ lineHeight: 1.5 }}
-          animate={{ color: isHovered ? 'rgba(255,255,255,0.72)' : '#9ca3af' }}
+          animate={{ color: isHovered ? 'rgba(255,255,255,0.72)' : (isDark ? '#a7a3b5' : '#9ca3af') }}
           transition={{ duration: 0.3 }}
         >
           {meta}
@@ -163,7 +185,7 @@ export const GradientRhCard: React.FC<GradientRhCardProps> = ({
         {/* Footer */}
         <motion.div
           className="flex items-center justify-between pt-4"
-          animate={{ borderTopColor: isHovered ? 'rgba(255,255,255,0.22)' : 'rgba(0,0,0,0.06)' }}
+          animate={{ borderTopColor: isHovered ? 'rgba(255,255,255,0.22)' : (isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.06)') }}
           style={{ borderTopWidth: 1, borderTopStyle: 'solid' }}
           transition={{ duration: 0.3 }}
         >
@@ -174,7 +196,7 @@ export const GradientRhCard: React.FC<GradientRhCardProps> = ({
                 className="text-[10px] font-semibold px-2.5 py-0.5 rounded-full"
                 animate={isHovered
                   ? { backgroundColor: 'rgba(255,255,255,0.18)', color: 'rgba(255,255,255,0.88)' }
-                  : { backgroundColor: 'rgba(0,0,0,0.05)', color: '#6b7280' }
+                  : { backgroundColor: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.05)', color: isDark ? '#c6c2d8' : '#6b7280' }
                 }
                 transition={{ duration: 0.3 }}
               >
