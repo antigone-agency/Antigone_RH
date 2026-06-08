@@ -177,7 +177,8 @@ public class EmployeService {
         }
 
         // --- Notifications ---
-        // Notify all ADMIN/RH users about new employee
+        // Notifications de création désactivées à la demande de l'utilisateur
+        /*
         String nomComplet = saved.getNom() + " " + saved.getPrenom();
         notifyAdmins("Nouvel employé",
                 "Un nouvel employé a été ajouté : " + nomComplet
@@ -185,7 +186,6 @@ public class EmployeService {
                         + (saved.getDepartement() != null ? " - Département : " + saved.getDepartement() : "")
                         + (saved.getPoste() != null ? " - Poste : " + saved.getPoste() : ""));
 
-        // Notify the manager if assigned
         if (saved.getManager() != null) {
             notificationService.create(saved.getManager(),
                     "Nouveau subordonné",
@@ -194,6 +194,7 @@ public class EmployeService {
                             + (saved.getPoste() != null ? " - Poste : " + saved.getPoste() : ""),
                     null);
         }
+        */
 
         return toDTO(saved);
     }

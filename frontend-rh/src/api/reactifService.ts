@@ -1,6 +1,6 @@
 import api from './axios';
 
-const BASE_URL = '/api/reactifs';
+const BASE_URL = '/reactifs';
 
 export interface ReactifInternDTO {
     id: number;

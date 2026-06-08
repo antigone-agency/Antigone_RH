@@ -1,6 +1,6 @@
 import api from './axios';
 
-const BASE_URL = '/api/mediaplan-comments';
+const BASE_URL = '/mediaplan-comments';
 
 export interface MediaPlanCommentDTO {
     id: number;
